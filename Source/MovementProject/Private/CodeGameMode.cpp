@@ -10,6 +10,10 @@ void ACodeGameMode::BeginPlay()
 	{
 		CurrentGameState->ExpectedPlayerCount = expectedPlayerCount;
 	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("BeginPlay: CurrentGameState is null"));
+	}
 }
 
 void ACodeGameMode::OnPhaseTimerComplete()
@@ -17,6 +21,7 @@ void ACodeGameMode::OnPhaseTimerComplete()
 	ACodeGameState* CurrentGameState = Cast<ACodeGameState>(GetGameState<ACodeGameState>());
 	if (!CurrentGameState)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("OnPhaseTimerComplete: CurrentGameState is null"));
 		return;
 	}
 
@@ -132,6 +137,7 @@ void ACodeGameMode::StartPhase(EPhases NewPhase)
 	ACodeGameState* CurrentGameState = Cast<ACodeGameState>(GetGameState<ACodeGameState>());
 	if (!CurrentGameState)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("StartPhase: CurrentGameState is null"));
 		return;
 	}
 
@@ -190,11 +196,17 @@ void ACodeGameMode::NotifyPlayerReady(ACodePlayerController* Controller)
 		if (readyPlayerControllers.Num() >= expectedPlayerCount && !bGameStarted)
 		{
 			ACodeGameState* CurrentGameState = Cast<ACodeGameState>(GetGameState<ACodeGameState>());
-			CurrentGameState->MulticastSendFinalPlayerList();
-
-			AssignRoles();
-			StartPhase(EPhases::Night);
-			bGameStarted = true;
+			if (CurrentGameState)
+			{
+				CurrentGameState->MulticastSendFinalPlayerList();
+				AssignRoles();
+				StartPhase(EPhases::Night);
+				bGameStarted = true;
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("NotifyPlayerReady: CurrentGameState is null"));
+			}
 		}
 	}
 }

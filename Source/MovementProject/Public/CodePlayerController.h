@@ -20,8 +20,8 @@ class MOVEMENTPROJECT_API ACodePlayerController : public APlayerController
 	
 public:
 
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
-	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
+	TSubclassOf<class UUserWidget> GamePhaseTimerWidgetClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bools")
 	bool bNightWidgetActive;
