@@ -9,6 +9,6 @@ enum class ERoles : uint8
 	Villager   UMETA(DisplayName = "Villager"),
 	Werewolf   UMETA(DisplayName = "Werewolf"),
 	Seer       UMETA(DisplayName = "Seer"),
-	Doctor     UMETA(DisplayName = "Doctor"),
+	Mayor      UMETA(DisplayName = "Mayor"),
 	Medic      UMETA(DisplayName = "Medic"),
 };

@@ -18,4 +18,13 @@ class MOVEMENTPROJECT_API UCodeWerewolfPartnerReveal : public UUserWidget
 public:
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* WerewolfNames;
+
+	FTimerHandle RemoveWidgetTimerHandle;
+
+	UFUNCTION()
+	void RemoveWidgetAfterDelay(float DelayTime = 3.0f);
+
+private:
+	UFUNCTION()
+	void OnRemoveWidgetTimer();
 };

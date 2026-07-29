@@ -3,12 +3,43 @@
 
 #include "CodeGameState.h"
 #include "CodePlayerController.h"
+#include "Net/UnrealNetwork.h"
+#include "CodePlayerState.h"
+#include "CodeNightActionTargeting.h"
 
 void ACodeGameState::MulticastSendFinalPlayerList_Implementation()
 {
 	ACodePlayerController* LocalPlayerController = Cast<ACodePlayerController>(GetWorld()->GetFirstPlayerController());
 	if (LocalPlayerController)
 	{
-		// LocalPlayerController->nightActionWidget->PopulateTargetList();
+		LocalPlayerController->nightActionWidget->PopulateTargetList();
 	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("MulticastSendFinalPlayerList: LocalPlayerController is null"));
+	}
+}
+
+void ACodeGameState::MulticastNotifyWinner_Implementation(int winningTeam)
+{
+	ACodePlayerController* LocalPlayerController = Cast<ACodePlayerController>(GetWorld()->GetFirstPlayerController());
+	if (LocalPlayerController)
+	{
+		// Show a message to the player about the winning team
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("MulticastSendFinalPlayerList: LocalPlayerController is null"));
+	}
+}
+
+void ACodeGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ACodeGameState, currentPhase);
+	DOREPLIFETIME(ACodeGameState, phaseTimeRemaining);
+	DOREPLIFETIME(ACodeGameState, phaseDuration);
+	DOREPLIFETIME(ACodeGameState, phaseEndTime);
+	DOREPLIFETIME(ACodeGameState, ExpectedPlayerCount);
 }

@@ -2,6 +2,8 @@
 
 #include "CodeGameMode.h"
 #include "Containers/List.h"
+#include "SRoleInfo.h"
+
 
 void ACodeGameMode::BeginPlay()
 {
@@ -27,17 +29,24 @@ void ACodeGameMode::OnPhaseTimerComplete()
 
 	switch (CurrentGameState->currentPhase)
 	{
+	case EPhases::RoleReveal:
+		StartPhase(EPhases::Night);
+		break;
 	case EPhases::Lobby:
 		StartPhase(EPhases::Night);
 		break;
 	case EPhases::Night:
+		ResolveNightActions();
+		CheckWinConditions();
 		StartPhase(EPhases::Day);
 		break;
 	case EPhases::Day:
-		ResolveNightActions();
+		CheckWinConditions();
 		StartPhase(EPhases::Voting);
 		break;
 	case EPhases::Voting:
+		ResolveVotes();
+		CheckWinConditions();
 		StartPhase(EPhases::Night);
 		break;
 	default:
@@ -71,9 +80,11 @@ void ACodeGameMode::AssignRoles()
 		rolePool.Swap(i, RandomIndex);
 	}
 
-	for (int i = 0; i < playerStates.Num() - 1; ++i)
+	for (int i = 0; i <= playerStates.Num() - 1; ++i)
 	{
 		playerStates[i]->currentRole = rolePool[i];
+
+		playerStates[i]->Client_ReceiveRole(playerStates[i]->currentRole);
 
 		if (playerStates[i]->currentRole == ERoles::Werewolf)
 		{
@@ -104,7 +115,7 @@ void ACodeGameMode::AssignRoles()
 				}
 			}
 		}
-		// Client Reveal Partner Name
+		PlayerState->Client_ReceiveWerewolfPartner(partnerNameText);
 	}
 
 	werewolfPacks.Empty();
@@ -129,6 +140,14 @@ void ACodeGameMode::AssignRoles()
 			}
 		}
 	}
+
+	for (ACodePlayerState* PlayerState : playerStates)
+	{
+		if (PlayerState)
+		{
+			PlayerState->OnRep_CurrentRole();
+		}
+	}
 }
 
 
@@ -146,6 +165,11 @@ void ACodeGameMode::StartPhase(EPhases NewPhase)
 
 	switch (CurrentGameState->currentPhase)
 	{
+	case EPhases::RoleReveal:
+		CurrentGameState->phaseTimeRemaining = roleRevealDuration;
+		CurrentGameState->phaseDuration = CurrentGameState->phaseTimeRemaining;
+		CurrentGameState->phaseEndTime = CurrentTime + CurrentGameState->phaseDuration;
+		break;
 	case EPhases::Lobby:
 		CurrentGameState->phaseTimeRemaining = 0.0f;
 		CurrentGameState->phaseDuration = CurrentGameState->phaseTimeRemaining;
@@ -161,6 +185,10 @@ void ACodeGameMode::StartPhase(EPhases NewPhase)
 			{
 				PlayerState->bHasSubmittedNightAction = false;
 				PlayerState->nightTarget = nullptr;
+				PlayerState->bIsProtected = false;
+				PlayerState->votesOnPlayer = 0;
+				PlayerState->OnRep_VotesOnPlayer();
+				PlayerState->OnRep_NightTarget();
 			}
 		}
 		break;
@@ -168,11 +196,23 @@ void ACodeGameMode::StartPhase(EPhases NewPhase)
 		CurrentGameState->phaseTimeRemaining = dayDuration;
 		CurrentGameState->phaseDuration = CurrentGameState->phaseTimeRemaining;
 		CurrentGameState->phaseEndTime = CurrentTime + CurrentGameState->phaseDuration;
+		for (ACodePlayerState* PlayerState : playerStates)
+		{
+			if (PlayerState)
+			{
+				PlayerState->bHasSubmittedVote = false;
+				PlayerState->voteTarget = nullptr;
+				PlayerState->votesOnPlayer = 0;
+				PlayerState->OnRep_VoteTarget();
+				PlayerState->OnRep_VotesOnPlayer();
+			}
+		}
 		break;
 	case EPhases::Voting:
 		CurrentGameState->phaseTimeRemaining = votingDuration;
 		CurrentGameState->phaseDuration = CurrentGameState->phaseTimeRemaining;
 		CurrentGameState->phaseEndTime = CurrentTime + CurrentGameState->phaseDuration;
+
 		break;
 	default:
 		break;
@@ -200,7 +240,7 @@ void ACodeGameMode::NotifyPlayerReady(ACodePlayerController* Controller)
 			{
 				CurrentGameState->MulticastSendFinalPlayerList();
 				AssignRoles();
-				StartPhase(EPhases::Night);
+				StartPhase(EPhases::RoleReveal);
 				bGameStarted = true;
 			}
 			else
@@ -213,4 +253,171 @@ void ACodeGameMode::NotifyPlayerReady(ACodePlayerController* Controller)
 
 void ACodeGameMode::ResolveNightActions()
 {
+	if (werewolves[0]->nightTarget && werewolves[0]->nightTarget->bIsAlive)
+	{
+		bAValid = true;
+		killTargetArray.Add(werewolves[0]->nightTarget);
+	}
+	if (werewolves[1]->nightTarget && werewolves[1]->nightTarget->bIsAlive)
+	{
+		bBValid = true;
+		killTargetArray.Add(werewolves[1]->nightTarget);
+	}
+
+	if (bAValid && bBValid)
+	{
+		if (werewolves[0]->nightTarget == werewolves[1]->nightTarget)
+		{
+			killTarget = werewolves[0]->nightTarget;
+		}
+		else
+		{
+			int32 RandomIndex = FMath::RandRange(0, killTargetArray.Num() - 1);
+			killTarget = killTargetArray[RandomIndex];
+		}
+	}
+	else if (bAValid)
+	{
+		killTarget = werewolves[0]->nightTarget;
+	}
+	else if (bBValid)
+	{
+		killTarget = werewolves[1]->nightTarget;
+	}
+	else
+	{
+		killTarget = nullptr;
+	}
+	for (ACodePlayerState* PlayerState : playerStates)
+	{
+		if (!PlayerState || !PlayerState->nightTarget)
+		{
+			continue;
+		}
+
+		FString TargetRoleNameString = UEnum::GetValueAsString(PlayerState->nightTarget->currentRole);
+		TargetRoleNameString.RemoveFromStart(TEXT("ERoles::"));
+
+		FSRoleInfo* RoleInfo = GameModeRoleDataTable->FindRow<FSRoleInfo>(*TargetRoleNameString, TEXT("PlayerControllerTick"));
+
+
+		if (PlayerState->currentRole == ERoles::Medic)
+		{
+			protectionTarget = PlayerState->nightTarget;
+			if (PlayerState == protectionTarget && PlayerState->selfProtectedCount < 3)
+			{
+				PlayerState->selfProtectedCount++;
+				protectionTarget->bIsProtected = true;
+				UE_LOG(LogTemp, Error, TEXT("ResolveNightActions: Medic %s protected themselves."), *PlayerState->GetPlayerName());
+			}
+			else if (protectionTarget != PlayerState)
+			{
+				protectionTarget->bIsProtected = true;
+				UE_LOG(LogTemp, Error, TEXT("ResolveNightActions: %s was protected by the Medic."), *protectionTarget->GetPlayerName());
+			}
+		}
+		else if (PlayerState->currentRole == ERoles::Seer)
+		{
+			seererTarget = PlayerState->nightTarget;
+			if (seererTarget)
+			{
+				if (RoleInfo)
+				{
+					FString RoleTeam = UEnum::GetValueAsString(RoleInfo->team);
+					RoleTeam.RemoveFromStart(TEXT("ETeams::"));
+					UE_LOG(LogTemp, Error, TEXT("ResolveNightActions: Seer %s targeted %s."), *PlayerState->GetPlayerName(), *seererTarget->GetPlayerName());
+					UE_LOG(LogTemp, Error, TEXT("ResolveNightActions: %s's team is %s."), *seererTarget->GetPlayerName(), *RoleTeam);
+				}
+			}
+		}
+
+	}
+	if (killTarget && killTarget->bIsProtected)
+	{
+		UE_LOG(LogTemp, Error, TEXT("ResolveNightActions: %s was protected and survived the night."), *killTarget->GetPlayerName());
+		killTarget->bIsProtected = false;
+		killTarget = nullptr;
+		killTargetArray.Empty();
+	}
+	else if (killTarget)
+	{
+		UE_LOG(LogTemp, Error, TEXT("ResolveNightActions: %s was killed during the night."), *killTarget->GetPlayerName());
+		killTarget->bIsAlive = false;
+		killTarget = nullptr;
+		killTargetArray.Empty();
+	}
 }
+
+void ACodeGameMode::ResolveVotes()
+{
+	ACodePlayerState* PlayerWithMostVotes = nullptr;
+	for (ACodePlayerState* PlayerState : playerStates)
+	{
+		if (!PlayerState || !PlayerState->bIsAlive)
+		{
+			continue;
+		}
+		if (!PlayerWithMostVotes || PlayerState->votesOnPlayer > PlayerWithMostVotes->votesOnPlayer)
+		{
+			PlayerWithMostVotes = PlayerState;
+		}
+		else if (PlayerState->votesOnPlayer == PlayerWithMostVotes->votesOnPlayer)
+		{
+			PlayerWithMostVotes = nullptr;
+		}
+	}
+
+	if (PlayerWithMostVotes)
+	{
+		PlayerWithMostVotes->bIsAlive = false;
+		UE_LOG(LogTemp, Error, TEXT("ResolveVotes: %s was voted out."), *PlayerWithMostVotes->GetPlayerName());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("ResolveVotes: No player was voted out due to a tie or no votes."));
+	}
+}
+
+void ACodeGameMode::CheckWinConditions()
+{
+	for (ACodePlayerState* PlayerState : playerStates)
+	{
+		if (!PlayerState)
+		{
+			continue;
+		}
+
+		FString TargetRoleNameString = UEnum::GetValueAsString(PlayerState->nightTarget->currentRole);
+		TargetRoleNameString.RemoveFromStart(TEXT("ERoles::"));
+
+		FSRoleInfo* RoleInfo = GameModeRoleDataTable->FindRow<FSRoleInfo>(*TargetRoleNameString, TEXT("PlayerControllerTick"));
+
+		if (RoleInfo)
+		{
+			if (RoleInfo->team == ETeams::Villagers)
+			{
+				villagerCount++;
+			}
+			else if (RoleInfo->team == ETeams::Werewolves)
+			{
+				werewolfCount++;
+			}
+		}
+	}
+
+	if (werewolfCount == 0)
+	{
+		winningTeam = 1; // Villagers win
+	}
+	else if (villagerCount <= werewolfCount)
+	{
+		winningTeam = 2; // Werewolves win
+	}
+	else
+	{
+		winningTeam = -1; // No winner yet
+	}
+
+}
+
+

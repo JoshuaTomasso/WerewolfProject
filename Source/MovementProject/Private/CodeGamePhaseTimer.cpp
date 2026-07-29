@@ -10,7 +10,7 @@ void UCodeGamePhaseTimer::NativeTick(const FGeometry& MyGeometry, float InDeltaT
 
 	ACodeGameState* GameState = GetWorld()->GetGameState<ACodeGameState>();
 
-	if (GameState && GamePhaseText && GamePhaseTimerBar)
+	if (GameState)
 	{
 		UEnum* EnumPtr = FindObject<UEnum>(ANY_PACKAGE, TEXT("EPhases"));
 		if (EnumPtr)
@@ -22,6 +22,7 @@ void UCodeGamePhaseTimer::NativeTick(const FGeometry& MyGeometry, float InDeltaT
 		GamePhaseTimerBar->SetPercent(TimePercent);
 
 		GamePhaseTimerBar->SetFillColorAndOpacity(
+			GameState->currentPhase == EPhases::RoleReveal ? roleRevealColor :
 			GameState->currentPhase == EPhases::Lobby ? lobbyColor :
 			GameState->currentPhase == EPhases::Night ? nightColor :
 			GameState->currentPhase == EPhases::Day ? dayColor :
@@ -33,3 +34,4 @@ void UCodeGamePhaseTimer::NativeTick(const FGeometry& MyGeometry, float InDeltaT
 		UE_LOG(LogTemp, Warning, TEXT("GameState or UI elements are null in UCodeGamePhaseTimer::NativeTick"));
 	}
 }
+

@@ -1,12 +1,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Engine/DataTable.h"
 #include "ERoles.h"
 #include "ETeams.h"
 #include "SRoleInfo.generated.h"
 
 USTRUCT(BlueprintType)
-struct FSRoleInfo
+struct FSRoleInfo : public FTableRowBase
 {
 	GENERATED_BODY()
 

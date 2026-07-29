@@ -6,6 +6,7 @@
 UENUM(BlueprintType)
 enum class EPhases : uint8
 {
+	RoleReveal UMETA(DisplayName = "Role Reveal"),
 	Day       UMETA(DisplayName = "Day"),
 	Night     UMETA(DisplayName = "Night"),
 	Voting    UMETA(DisplayName = "Voting"),
