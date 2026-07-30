@@ -10,6 +10,7 @@
 class UCodeGamePhaseTimer;
 class UCodeNightActionTargeting;
 class UCodeDayVoteTargeting;
+class UCodeGameOver;
 
 /**
  *
@@ -31,10 +32,16 @@ public:
 	TSubclassOf<UCodeDayVoteTargeting> DayVoteWidgetClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
+	TSubclassOf<UCodeGameOver> GameOverWidgetClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
 	UCodeNightActionTargeting* nightActionWidget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
 	UCodeDayVoteTargeting* dayVoteWidget;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
+	UCodeGameOver* gameOverWidget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bools")
 	bool bNightWidgetActive;
@@ -57,5 +64,8 @@ public:
 
 	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "PlayerController")
 	void Server_NotifyReady();
+
+	UFUNCTION(BlueprintCallable, Category = "PlayerController")
+	void ShowGameOverWidget(FString WinningFaction);
 
 };

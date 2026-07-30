@@ -9,6 +9,7 @@
 #include "CodeNightActionTargeting.h"
 #include "CodePlayerState.h"
 #include "CodeDayVoteTargeting.h"
+#include "CodeGameOver.h"
 
 void ACodePlayerController::Server_NotifyReady_Implementation()
 {
@@ -62,6 +63,19 @@ void ACodePlayerController::BeginPlay()
 			else
 			{
 				UE_LOG(LogTemp, Warning, TEXT("BeginPlay: dayVoteWidget is null"));
+			}
+		}
+		if (GameOverWidgetClass)
+		{
+			gameOverWidget = CreateWidget<UCodeGameOver>(this, GameOverWidgetClass);
+			if (gameOverWidget)
+			{
+				gameOverWidget->AddToViewport();
+				gameOverWidget->SetVisibility(ESlateVisibility::Collapsed);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("BeginPlay: gameOverWidget is null"));
 			}
 		}
 	}
@@ -118,6 +132,10 @@ void ACodePlayerController::Tick(float DeltaTime)
 							{
 								nightActionWidget->SetVisibility(ESlateVisibility::Visible);
 							}
+							else
+							{
+								nightActionWidget->SetVisibility(ESlateVisibility::Collapsed);
+							}
 							bNightWidgetActive = true;
 						}
 
@@ -127,15 +145,20 @@ void ACodePlayerController::Tick(float DeltaTime)
 			}
 			else if (GameState->currentPhase == EPhases::Voting && bHasAckedReady)
 			{
-				bShowMouseCursor = true;
-				SetInputMode(FInputModeGameAndUI());
-				if (dayVoteWidget)
+
+				ACodePlayerState* CodePlayerState = GetPlayerState<ACodePlayerState>();
+				if (CodePlayerState)
 				{
-					dayVoteWidget->SetVisibility(ESlateVisibility::Visible);
-				}
-				else
-				{
-					UE_LOG(LogTemp, Warning, TEXT("Tick: dayVoteWidget is null"));
+					bShowMouseCursor = true;
+					SetInputMode(FInputModeGameAndUI());
+					if (dayVoteWidget && CodePlayerState->bIsAlive)
+					{
+						dayVoteWidget->SetVisibility(ESlateVisibility::Visible);
+					}
+					else
+					{
+						dayVoteWidget->SetVisibility(ESlateVisibility::Collapsed);
+					}
 				}
 			}
 			else
@@ -176,5 +199,19 @@ void ACodePlayerController::Tick(float DeltaTime)
 				bDayTargetListPopulated = false;
 			}
 		}
+	}
+}
+
+void ACodePlayerController::ShowGameOverWidget(FString WinningFaction)
+{
+	if (gameOverWidget)
+	{
+		gameOverWidget->SetVisibility(ESlateVisibility::Visible);
+
+		gameOverWidget->GameOverText->SetText(FText::FromString(WinningFaction));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ShowGameOverWidget: gameOverWidget is null"));
 	}
 }

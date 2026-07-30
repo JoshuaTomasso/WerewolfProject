@@ -22,10 +22,23 @@ void ACodeGameState::MulticastSendFinalPlayerList_Implementation()
 
 void ACodeGameState::MulticastNotifyWinner_Implementation(int winningTeam)
 {
+	UE_LOG(LogTemp, Log, TEXT("MulticastNotifyWinner: Winning Team is %d"), winningTeam);
 	ACodePlayerController* LocalPlayerController = Cast<ACodePlayerController>(GetWorld()->GetFirstPlayerController());
 	if (LocalPlayerController)
 	{
 		// Show a message to the player about the winning team
+		if (winningTeam == 1)
+		{
+			LocalPlayerController->ShowGameOverWidget(TEXT("Winning Team: Villagers"));
+		}
+		else if (winningTeam == 2)
+		{
+			LocalPlayerController->ShowGameOverWidget(TEXT("Winning Team: Werewolves"));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Winning Team: None Yet"));
+		}
 	}
 	else
 	{

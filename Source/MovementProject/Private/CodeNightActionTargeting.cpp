@@ -32,11 +32,29 @@ void UCodeNightActionTargeting::NativeDestruct()
 	{
 		GetWorld()->GetTimerManager().ClearTimer(InitializationTimerHandle);
 	}
+
+	if (CastedPlayer)
+	{
+		CastedPlayer->OnRoleAssigned.RemoveDynamic(this, &UCodeNightActionTargeting::OnRoleAssignedHandler);
+		CastedPlayer->OnErrorCountChanged.RemoveDynamic(this, &UCodeNightActionTargeting::ShowVoteNotification);
+		CastedPlayer->OnTargetDeadCountChanged.RemoveDynamic(this, &UCodeNightActionTargeting::ShowTargetDeadNotification);
+	}
+
+	if (PartnersTarget)
+	{
+		PartnersTarget->OnNightTargetChanged.RemoveDynamic(this, &UCodeNightActionTargeting::UpdatePartnerVoteDisplay);
+	}
+
 	Super::NativeDestruct();
 }
 
 void UCodeNightActionTargeting::PopulateTargetList()
 {
+	if (!CastedPlayer)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("PopulateTargetList: CastedPlayer is null"));
+		return;
+	}
 
 	PlayerChoicesScrollBox->ClearChildren();
 
@@ -228,5 +246,4 @@ void UCodeNightActionTargeting::InitializePlayerState()
 		PlayerState->OnErrorCountChanged.RemoveDynamic(this, &UCodeNightActionTargeting::ShowVoteNotification);
 		PlayerState->OnErrorCountChanged.AddDynamic(this, &UCodeNightActionTargeting::ShowVoteNotification);
 	}
-	UE_LOG(LogTemp, Warning, TEXT("InitializePlayerState: Player %s now initialized"), *OwningController->PlayerState->GetPlayerName());
 }

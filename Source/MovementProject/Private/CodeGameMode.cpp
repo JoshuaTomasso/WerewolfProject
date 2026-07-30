@@ -20,6 +20,12 @@ void ACodeGameMode::BeginPlay()
 
 void ACodeGameMode::OnPhaseTimerComplete()
 {
+	if (bGameOver)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("OnPhaseTimerComplete: Game is over, cannot proceed to next phase"));
+		return;
+	}
+
 	ACodeGameState* CurrentGameState = Cast<ACodeGameState>(GetGameState<ACodeGameState>());
 	if (!CurrentGameState)
 	{
@@ -153,6 +159,12 @@ void ACodeGameMode::AssignRoles()
 
 void ACodeGameMode::StartPhase(EPhases NewPhase)
 {
+	if (bGameOver)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("StartPhase: Game is over, cannot start new phase"));
+		return;
+	}
+
 	ACodeGameState* CurrentGameState = Cast<ACodeGameState>(GetGameState<ACodeGameState>());
 	if (!CurrentGameState)
 	{
@@ -380,42 +392,69 @@ void ACodeGameMode::ResolveVotes()
 
 void ACodeGameMode::CheckWinConditions()
 {
+	villagerCount = 0;
+	werewolfCount = 0;
+
 	for (ACodePlayerState* PlayerState : playerStates)
 	{
 		if (!PlayerState)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("CheckWinConditions: PlayerState is null"));
 			continue;
 		}
 
-		FString TargetRoleNameString = UEnum::GetValueAsString(PlayerState->nightTarget->currentRole);
+		FString TargetRoleNameString = UEnum::GetValueAsString(PlayerState->currentRole);
 		TargetRoleNameString.RemoveFromStart(TEXT("ERoles::"));
 
-		FSRoleInfo* RoleInfo = GameModeRoleDataTable->FindRow<FSRoleInfo>(*TargetRoleNameString, TEXT("PlayerControllerTick"));
+		FSRoleInfo* RoleInfo = GameModeRoleDataTable->FindRow<FSRoleInfo>(*TargetRoleNameString, TEXT("CheckWinConditions"));
 
 		if (RoleInfo)
 		{
-			if (RoleInfo->team == ETeams::Villagers)
+			if (RoleInfo->team == ETeams::Villagers && PlayerState->bIsAlive)
 			{
 				villagerCount++;
 			}
-			else if (RoleInfo->team == ETeams::Werewolves)
+			else if (RoleInfo->team == ETeams::Werewolves && PlayerState->bIsAlive)
 			{
 				werewolfCount++;
 			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("CheckWinConditions: RoleInfo is null for player %s with role %s"), *PlayerState->GetPlayerName(), *TargetRoleNameString);
 		}
 	}
 
 	if (werewolfCount == 0)
 	{
 		winningTeam = 1; // Villagers win
+		bGameOver = true;
 	}
-	else if (villagerCount <= werewolfCount)
+	else if (villagerCount < werewolfCount)
 	{
 		winningTeam = 2; // Werewolves win
+		bGameOver = true;
 	}
 	else
 	{
 		winningTeam = -1; // No winner yet
+	}
+
+	ACodeGameState* MyGameState = GetGameState<ACodeGameState>();
+	if (MyGameState)
+	{
+		MyGameState->MulticastNotifyWinner(winningTeam);
+
+		if (bGameOver)
+		{
+			GetWorld()->GetTimerManager().ClearTimer(phaseTimerHandle);
+			MyGameState->phaseTimeRemaining = 0.0f;
+			MyGameState->phaseDuration = 0.0f;
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("CheckWinConditions: MyGameState is null : Final Check"));
 	}
 
 }

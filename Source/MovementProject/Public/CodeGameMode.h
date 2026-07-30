@@ -9,7 +9,6 @@
 #include <string>
 #include "CodeGameState.h"
 #include "ERoles.h"
-#include "ETeams.h"
 #include "SWerewolfPack.h"
 #include "CodePlayerController.h"
 #include "CodePlayerState.h"
@@ -85,6 +84,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WinConditions")
 	int werewolfCount = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WinConditions")
+	bool bGameOver = false;
 
 	void BeginPlay() override;
 
