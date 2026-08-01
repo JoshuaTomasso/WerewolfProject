@@ -5,13 +5,13 @@
 #include "CodePlayerState.h"
 #include "CodeButtonAndText.h"
 #include "CodeGameState.h"
+#include "Components/Spacer.h"
 
 void UCodeNightActionTargeting::NativeConstruct()
 {
 	if (VoteNotificationText)
 	{
 		VoteNotificationText->SetVisibility(ESlateVisibility::Collapsed);
-		TargetDeadNotificationText->SetVisibility(ESlateVisibility::Collapsed);
 
 		APlayerController* OwningController = GetOwningPlayer();
 		if (OwningController && OwningController->PlayerState)
@@ -37,7 +37,6 @@ void UCodeNightActionTargeting::NativeDestruct()
 	{
 		CastedPlayer->OnRoleAssigned.RemoveDynamic(this, &UCodeNightActionTargeting::OnRoleAssignedHandler);
 		CastedPlayer->OnErrorCountChanged.RemoveDynamic(this, &UCodeNightActionTargeting::ShowVoteNotification);
-		CastedPlayer->OnTargetDeadCountChanged.RemoveDynamic(this, &UCodeNightActionTargeting::ShowTargetDeadNotification);
 	}
 
 	if (PartnersTarget)
@@ -82,6 +81,10 @@ void UCodeNightActionTargeting::PopulateTargetList()
 						UCodeButtonAndText* NewEntry = CreateWidget<UCodeButtonAndText>(this, ButtonAndTextWidget);
 						NewEntry->SetupEntry(CodePlayerState);
 						PlayerChoicesScrollBox->AddChild(NewEntry);
+
+						USpacer* Spacer = NewObject<USpacer>(this);
+						Spacer->SetSize(FVector2D(EntrySpacing, EntrySpacing));
+						PlayerChoicesScrollBox->AddChild(Spacer);
 					}
 				}
 			}
@@ -134,6 +137,16 @@ void UCodeNightActionTargeting::OnRoleAssignedHandler()
 
 void UCodeNightActionTargeting::ShowVoteNotification()
 {
+
+	if (CastedPlayer->currentRole == ERoles::Medic)
+	{
+		VoteNotificationText->SetText(FText::FromString("You have ran out of self protection"));
+	}
+	else if (CastedPlayer->currentRole == ERoles::Seer)
+	{
+		VoteNotificationText->SetText(FText::FromString("You have ran out of seer ability"));
+	}
+
 	VoteNotificationText->SetVisibility(ESlateVisibility::Visible);
 
 	FTimerHandle TimerHandle;
@@ -150,26 +163,6 @@ void UCodeNightActionTargeting::ShowVoteNotification()
 void UCodeNightActionTargeting::HideVoteNotification()
 {
 	VoteNotificationText->SetVisibility(ESlateVisibility::Collapsed);
-}
-
-void UCodeNightActionTargeting::ShowTargetDeadNotification()
-{
-	TargetDeadNotificationText->SetVisibility(ESlateVisibility::Visible);
-
-	FTimerHandle TimerHandle;
-	GetWorld()->GetTimerManager().SetTimer
-	(
-		TimerHandle,
-		this,
-		&UCodeNightActionTargeting::HideTargetDeadNotification,
-		1.0f,
-		false
-	);
-}
-
-void UCodeNightActionTargeting::HideTargetDeadNotification()
-{
-	TargetDeadNotificationText->SetVisibility(ESlateVisibility::Collapsed);
 }
 
 void UCodeNightActionTargeting::TryInitializePlayerState()
@@ -199,9 +192,6 @@ void UCodeNightActionTargeting::TryInitializePlayerState()
 
 			PlayerState->OnErrorCountChanged.RemoveDynamic(this, &UCodeNightActionTargeting::ShowVoteNotification);
 			PlayerState->OnErrorCountChanged.AddDynamic(this, &UCodeNightActionTargeting::ShowVoteNotification);
-
-			PlayerState->OnTargetDeadCountChanged.RemoveDynamic(this, &UCodeNightActionTargeting::ShowTargetDeadNotification);
-			PlayerState->OnTargetDeadCountChanged.AddDynamic(this, &UCodeNightActionTargeting::ShowTargetDeadNotification);
 		}
 	}
 	else if (InitializationRetryCount < 50)

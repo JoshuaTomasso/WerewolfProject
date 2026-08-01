@@ -72,20 +72,47 @@ void ACodePlayerState::Server_SubmitNightAction_Implementation(ACodePlayerState*
 
 		if (GameState->currentPhase == EPhases::Night && bIsAlive && !bHasSubmittedNightAction && abilityTarget->bIsAlive)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Server_SubmitNightAction_Implementation: Player %s is submitting a night action targeting %s"), *GetPlayerName(), *abilityTarget->GetPlayerName());
 
 			bool bCanVoteFor = true;
 
-			if (this == abilityTarget || werewolfPartner == abilityTarget)
+			if (this == abilityTarget)
 			{
-				if (currentRole != ERoles::Medic)
+				if (currentRole == ERoles::Medic)
 				{
-					UE_LOG(LogTemp, Warning, TEXT("Server_SubmitNightAction_Implementation: Player %s attempted to target themselves or their werewolf partner"), *GetPlayerName());
+					if (selfProtectedCount >= 1)
+					{
+						voteErrorCount++;
+						OnRep_VoteErrorCount();
+						bCanVoteFor = false;
+					}
+					else if (selfProtectedCount < 1)
+					{
+						selfProtectedCount++;
+					}
+				}
+			}
+			else if (werewolfPartner == abilityTarget)
+			{
+				voteErrorCount++;
+				OnRep_VoteErrorCount();
+				bCanVoteFor = false;
+			}
+
+			if (currentRole == ERoles::Seer)
+			{
+				if (seerAbilityCount >= 1)
+				{
 					voteErrorCount++;
 					OnRep_VoteErrorCount();
 					bCanVoteFor = false;
 				}
+				else if (seerAbilityCount < 1)
+				{
+					seerAbilityCount++;
+				}
 			}
+
+			
 
 			if (bCanVoteFor)
 			{
@@ -128,8 +155,6 @@ void ACodePlayerState::Server_SubmitVote_Implementation(ACodePlayerState* abilit
 
 		if (GameState->currentPhase == EPhases::Voting && bIsAlive && abilityTarget->bIsAlive && !bHasSubmittedVote)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Server_SubmitVote_Implementation: Player %s is submitting a night action targeting %s"), *GetPlayerName(), *abilityTarget->GetPlayerName());
-
 			voteTarget = abilityTarget;
 			bHasSubmittedVote = true;
 			OnRep_VoteTarget();

@@ -6,6 +6,7 @@
 #include "CodeButtonAndText.h"
 #include "CodeGameState.h"
 #include "CodePlayerController.h"
+#include "Components/Spacer.h"
 
 void UCodeDayVoteTargeting::NativeConstruct()
 {
@@ -34,6 +35,10 @@ void UCodeDayVoteTargeting::PopulateTargetList()
 						UCodeButtonAndText* NewEntry = CreateWidget<UCodeButtonAndText>(this, ButtonAndTextWidget);
 						NewEntry->SetupEntry(CodePlayerState);
 						PlayerChoicesScrollBox->AddChild(NewEntry);
+
+						USpacer* Spacer = NewObject<USpacer>(this);
+						Spacer->SetSize(FVector2D(EntrySpacing, EntrySpacing));
+						PlayerChoicesScrollBox->AddChild(Spacer);
 					}
 				}
 			}

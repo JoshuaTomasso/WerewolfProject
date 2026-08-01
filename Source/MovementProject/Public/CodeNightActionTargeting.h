@@ -37,9 +37,6 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* PlayerNameText;
 
-	UPROPERTY(meta = (BindWidget))
-	UTextBlock* TargetDeadNotificationText;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player State")
 	ACodePlayerState* PartnersTarget;
 
@@ -48,6 +45,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 	TSubclassOf<UCodeButtonAndText> ButtonAndTextWidget;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+	float EntrySpacing = 10.0f;
 
 	UFUNCTION()
 	virtual void NativeConstruct() override;
@@ -70,11 +70,6 @@ public:
 	UFUNCTION()
 	void HideVoteNotification();
 
-	UFUNCTION()
-	void ShowTargetDeadNotification();
-
-	UFUNCTION()
-	void HideTargetDeadNotification();
 
 private:
 	FTimerHandle InitializationTimerHandle;

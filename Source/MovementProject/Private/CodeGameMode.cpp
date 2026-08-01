@@ -337,8 +337,15 @@ void ACodeGameMode::ResolveNightActions()
 				{
 					FString RoleTeam = UEnum::GetValueAsString(RoleInfo->team);
 					RoleTeam.RemoveFromStart(TEXT("ETeams::"));
-					UE_LOG(LogTemp, Error, TEXT("ResolveNightActions: Seer %s targeted %s."), *PlayerState->GetPlayerName(), *seererTarget->GetPlayerName());
 					UE_LOG(LogTemp, Error, TEXT("ResolveNightActions: %s's team is %s."), *seererTarget->GetPlayerName(), *RoleTeam);
+					
+					ACodePlayerController* SeerController = Cast<ACodePlayerController>(PlayerState->GetOwner());
+					
+					if (SeerController)
+					{
+						SeerController->Client_SetNightResultText(RoleTeam);
+					}
+
 				}
 			}
 		}
@@ -363,23 +370,28 @@ void ACodeGameMode::ResolveNightActions()
 void ACodeGameMode::ResolveVotes()
 {
 	ACodePlayerState* PlayerWithMostVotes = nullptr;
+	int32 HighestVoteCount = -1;
+	bool bTiedForFirst = false;
+
 	for (ACodePlayerState* PlayerState : playerStates)
 	{
 		if (!PlayerState || !PlayerState->bIsAlive)
 		{
 			continue;
 		}
-		if (!PlayerWithMostVotes || PlayerState->votesOnPlayer > PlayerWithMostVotes->votesOnPlayer)
+		if (PlayerState->votesOnPlayer > HighestVoteCount)
 		{
+			HighestVoteCount = PlayerState->votesOnPlayer;
 			PlayerWithMostVotes = PlayerState;
+			bTiedForFirst = false;
 		}
-		else if (PlayerState->votesOnPlayer == PlayerWithMostVotes->votesOnPlayer)
+		else if (PlayerState->votesOnPlayer == HighestVoteCount)
 		{
-			PlayerWithMostVotes = nullptr;
+			bTiedForFirst = true;
 		}
 	}
 
-	if (PlayerWithMostVotes)
+	if (PlayerWithMostVotes && HighestVoteCount > 0 && !bTiedForFirst)
 	{
 		PlayerWithMostVotes->bIsAlive = false;
 		UE_LOG(LogTemp, Error, TEXT("ResolveVotes: %s was voted out."), *PlayerWithMostVotes->GetPlayerName());

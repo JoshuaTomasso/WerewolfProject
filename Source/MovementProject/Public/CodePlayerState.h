@@ -42,6 +42,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ints")
 	int selfProtectedCount;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ints")
+	int seerAbilityCount;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player States", Replicated, ReplicatedUsing = OnRep_NightTarget)
 	ACodePlayerState* nightTarget;
 

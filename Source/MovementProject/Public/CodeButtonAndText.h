@@ -29,6 +29,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player State")
 	ACodePlayerState* targetPlayerState;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Color")
+	FLinearColor ButtonClickedColor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Color")
+	FLinearColor BaseButtonColor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Timer")
+	float ButtonResetDelay;
+
+	FTimerHandle ButtonResetTimerHandle;
+
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
 
@@ -40,4 +51,7 @@ public:
 
 	UFUNCTION()
 	void UpdateVoteCountDisplay();
+
+	UFUNCTION()
+	void ResetButtonColor();
 };

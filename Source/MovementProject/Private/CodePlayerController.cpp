@@ -10,20 +10,7 @@
 #include "CodePlayerState.h"
 #include "CodeDayVoteTargeting.h"
 #include "CodeGameOver.h"
-
-void ACodePlayerController::Server_NotifyReady_Implementation()
-{
-	ACodeGameMode* GameMode = Cast<ACodeGameMode>(GetWorld()->GetAuthGameMode());
-
-	if (GameMode)
-	{
-		GameMode->NotifyPlayerReady(this);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Server_NotifyReady: GameMode is null"));
-	}
-}
+#include "CodeNightResult.h"
 
 void ACodePlayerController::BeginPlay()
 {
@@ -33,10 +20,10 @@ void ACodePlayerController::BeginPlay()
 	{
 		if (GamePhaseTimerWidgetClass)
 		{
-			UCodeGamePhaseTimer* GamePhaseTimerWidget = CreateWidget<UCodeGamePhaseTimer>(this, GamePhaseTimerWidgetClass);
-			if (GamePhaseTimerWidget)
+			gamePhaseTimerWidget = CreateWidget<UCodeGamePhaseTimer>(this, GamePhaseTimerWidgetClass);
+			if (gamePhaseTimerWidget)
 			{
-				GamePhaseTimerWidget->AddToViewport();
+				gamePhaseTimerWidget->AddToViewport();
 			}
 		}
 		if (NightActionWidgetClass)
@@ -78,6 +65,19 @@ void ACodePlayerController::BeginPlay()
 				UE_LOG(LogTemp, Warning, TEXT("BeginPlay: gameOverWidget is null"));
 			}
 		}
+		if (NightResultWidgetClass)
+		{
+			nightResultWidget = CreateWidget<UCodeNightResult>(this, NightResultWidgetClass);
+			if (nightResultWidget)
+			{
+				nightResultWidget->AddToViewport();
+				nightResultWidget->SetVisibility(ESlateVisibility::Collapsed);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("BeginPlay: nightResultWidget is null"));
+			}
+		}
 	}
 }
 
@@ -107,6 +107,7 @@ void ACodePlayerController::Tick(float DeltaTime)
 				if (dayVoteWidget)
 				{
 					dayVoteWidget->SetVisibility(ESlateVisibility::Collapsed);
+					nightResultWidget->SetVisibility(ESlateVisibility::Collapsed);
 				}
 				else
 				{
@@ -153,6 +154,8 @@ void ACodePlayerController::Tick(float DeltaTime)
 					SetInputMode(FInputModeGameAndUI());
 					if (dayVoteWidget && CodePlayerState->bIsAlive)
 					{
+						nightActionWidget->SetVisibility(ESlateVisibility::Collapsed);
+						nightResultWidget->SetVisibility(ESlateVisibility::Collapsed);
 						dayVoteWidget->SetVisibility(ESlateVisibility::Visible);
 					}
 					else
@@ -161,20 +164,21 @@ void ACodePlayerController::Tick(float DeltaTime)
 					}
 				}
 			}
-			else
+			else if (GameState->currentPhase == EPhases::Day && bHasAckedReady)
 			{
-				if (bNightWidgetActive)
+				ACodePlayerState* CodePlayerState = GetPlayerState<ACodePlayerState>();
+				if (CodePlayerState)
 				{
-					if (nightActionWidget)
+					if (nightResultWidget && CodePlayerState->bIsAlive)
 					{
+						dayVoteWidget->SetVisibility(ESlateVisibility::Collapsed);
 						nightActionWidget->SetVisibility(ESlateVisibility::Collapsed);
+						nightResultWidget->SetVisibility(ESlateVisibility::Visible);
 					}
 					else
 					{
-						UE_LOG(LogTemp, Warning, TEXT("Tick: nightActionWidget is null"));
+						nightResultWidget->SetVisibility(ESlateVisibility::Collapsed);
 					}
-
-					bNightWidgetActive = false;
 					bShowMouseCursor = false;
 					SetInputMode(FInputModeGameOnly());
 				}
@@ -202,10 +206,38 @@ void ACodePlayerController::Tick(float DeltaTime)
 	}
 }
 
+void ACodePlayerController::Server_NotifyReady_Implementation()
+{
+	ACodeGameMode* GameMode = Cast<ACodeGameMode>(GetWorld()->GetAuthGameMode());
+
+	if (GameMode)
+	{
+		GameMode->NotifyPlayerReady(this);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Server_NotifyReady: GameMode is null"));
+	}
+}
+
+void ACodePlayerController::Client_SetNightResultText_Implementation(const FString& ResultText)
+{
+	if (nightResultWidget)
+	{
+		nightResultWidget->UpdateNightResult(FText::FromString(ResultText));
+		nightResultWidget->ShowNightResult();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Client_SetNightResultText: nightResultWidget is null"));
+	}
+}
+
 void ACodePlayerController::ShowGameOverWidget(FString WinningFaction)
 {
 	if (gameOverWidget)
 	{
+		gamePhaseTimerWidget->SetVisibility(ESlateVisibility::Collapsed);
 		gameOverWidget->SetVisibility(ESlateVisibility::Visible);
 
 		gameOverWidget->GameOverText->SetText(FText::FromString(WinningFaction));

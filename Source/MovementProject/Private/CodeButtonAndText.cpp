@@ -23,6 +23,7 @@ void UCodeButtonAndText::NativeDestruct()
 
 void UCodeButtonAndText::SetupEntry(ACodePlayerState* PlayerReference)
 {
+	PlayerNameButton->SetBackgroundColor(BaseButtonColor);
 	targetPlayerState = PlayerReference;
 	
 	if (targetPlayerState)
@@ -40,6 +41,7 @@ void UCodeButtonAndText::SetupEntry(ACodePlayerState* PlayerReference)
 
 void UCodeButtonAndText::OnButtonPressed()
 {
+	PlayerNameButton->SetBackgroundColor(ButtonClickedColor);
 	ACodePlayerState* playerState = Cast<ACodePlayerState>(GetOwningPlayer()->PlayerState);
 
 	if (GetWorld()->GetGameState<ACodeGameState>()->currentPhase == EPhases::Night)
@@ -58,6 +60,13 @@ void UCodeButtonAndText::OnButtonPressed()
 			playerState->Server_SubmitVote(targetPlayerState);
 		}
 	}
+
+	GetWorld()->GetTimerManager().SetTimer(
+		ButtonResetTimerHandle,
+		this,
+		&UCodeButtonAndText::ResetButtonColor, 
+		ButtonResetDelay, 
+		false);
 }
 void UCodeButtonAndText::UpdateVoteCountDisplay()
 {
@@ -74,4 +83,9 @@ void UCodeButtonAndText::UpdateVoteCountDisplay()
 	{
 		PlayerNameText->SetText(FText::FromString(targetPlayerState->GetPlayerName()));
 	}
+}
+
+void UCodeButtonAndText::ResetButtonColor()
+{
+	PlayerNameButton->SetBackgroundColor(BaseButtonColor);
 }

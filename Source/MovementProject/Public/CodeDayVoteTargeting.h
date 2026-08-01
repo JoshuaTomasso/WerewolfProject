@@ -29,6 +29,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 	TSubclassOf<UCodeButtonAndText> ButtonAndTextWidget;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+	float EntrySpacing = 10.0f;
+
 	virtual void NativeConstruct() override;
 
 	UFUNCTION()
