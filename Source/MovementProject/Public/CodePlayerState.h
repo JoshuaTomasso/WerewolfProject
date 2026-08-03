@@ -16,6 +16,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnNightTargetChanged);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTargetDeadChanged);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnVoteTargetChanged);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnVotesOnPlayerChanged);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHasRevealedRoleChanged);
 
 /**
  * 
@@ -69,6 +70,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bools")
 	bool bIsProtected;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bools", Replicated, ReplicatedUsing = OnRep_HasRevealedRole)
+	bool bHasRevealedRole;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Role", Replicated, ReplicatedUsing = OnRep_CurrentRole)
 	ERoles currentRole;
 
@@ -102,6 +106,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Votes On Player")
 	FOnVotesOnPlayerChanged OnVotesOnPlayerChanged;
 
+	UPROPERTY(BlueprintAssignable, Category = "Role Revealed")
+	FOnHasRevealedRoleChanged OnHasRevealedRoleChanged;
+
 	UFUNCTION(Client, Unreliable, BlueprintCallable, Category = "GameState")
 	void Client_ReceiveRole(ERoles roleToReveal);
 
@@ -113,6 +120,9 @@ public:
 
 	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "GameState")
 	void Server_SubmitVote(ACodePlayerState* abilityTarget);
+
+	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "GameState")
+	void Server_RevealeRole();
 
 	UFUNCTION()
 	void OnRep_CurrentRole();
@@ -131,6 +141,9 @@ public:
 
 	UFUNCTION()
 	void OnRep_VotesOnPlayer();
+
+	UFUNCTION()
+	void OnRep_HasRevealedRole();
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 

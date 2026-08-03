@@ -152,8 +152,16 @@ void ACodePlayerState::Server_SubmitVote_Implementation(ACodePlayerState* abilit
 	ACodeGameState* GameState = Cast<ACodeGameState>(GetWorld()->GetGameState());
 	if (GameState)
 	{
+		if (abilityTarget == nullptr)
+		{
+			voteTarget = nullptr;
+			bHasSubmittedVote = true;
+			OnRep_VoteTarget();
 
-		if (GameState->currentPhase == EPhases::Voting && bIsAlive && abilityTarget->bIsAlive && !bHasSubmittedVote)
+			GameState->SkipVoteCount++;
+			GameState->OnRep_SkipVoteCount();
+		}
+		else if (GameState->currentPhase == EPhases::Voting && bIsAlive && abilityTarget->bIsAlive && !bHasSubmittedVote)
 		{
 			voteTarget = abilityTarget;
 			bHasSubmittedVote = true;
@@ -167,6 +175,12 @@ void ACodePlayerState::Server_SubmitVote_Implementation(ACodePlayerState* abilit
 			UE_LOG(LogTemp, Warning, TEXT("Server_SubmitVote_Implementation: GameState is null"));
 		}
 	}
+}
+
+void ACodePlayerState::Server_RevealeRole_Implementation()
+{
+	bHasRevealedRole = true;
+	OnRep_HasRevealedRole();
 }
 
 void ACodePlayerState::OnRep_CurrentRole()
@@ -199,6 +213,11 @@ void ACodePlayerState::OnRep_VotesOnPlayer()
 	OnVotesOnPlayerChanged.Broadcast();
 }
 
+void ACodePlayerState::OnRep_HasRevealedRole()
+{
+	OnHasRevealedRoleChanged.Broadcast();
+}
+
 void ACodePlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -212,6 +231,7 @@ void ACodePlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(ACodePlayerState, bHasSubmittedVote);
 	DOREPLIFETIME(ACodePlayerState, targetDeadCount);
 	DOREPLIFETIME(ACodePlayerState, votesOnPlayer);
+	DOREPLIFETIME(ACodePlayerState, bHasRevealedRole);
 }
 
 void ACodePlayerState::OnShowWidgetTimer(const FText& partnerName)

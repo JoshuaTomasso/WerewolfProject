@@ -11,6 +11,7 @@
 #include "CodeDayVoteTargeting.h"
 #include "CodeGameOver.h"
 #include "CodeNightResult.h"
+#include "CodeRevealeRole.h"
 
 void ACodePlayerController::BeginPlay()
 {
@@ -76,6 +77,19 @@ void ACodePlayerController::BeginPlay()
 			else
 			{
 				UE_LOG(LogTemp, Warning, TEXT("BeginPlay: nightResultWidget is null"));
+			}
+		}
+		if (RevealeRoleWidgetClass)
+		{
+			revealeRoleWidget = CreateWidget<UCodeRevealeRole>(this, RevealeRoleWidgetClass);
+			if (revealeRoleWidget)
+			{
+				revealeRoleWidget->AddToViewport();
+				revealeRoleWidget->SetVisibility(ESlateVisibility::Collapsed);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("BeginPlay: revealeRoleWidget is null"));
 			}
 		}
 	}
@@ -156,6 +170,7 @@ void ACodePlayerController::Tick(float DeltaTime)
 					{
 						nightActionWidget->SetVisibility(ESlateVisibility::Collapsed);
 						nightResultWidget->SetVisibility(ESlateVisibility::Collapsed);
+						revealeRoleWidget->SetVisibility(ESlateVisibility::Collapsed);
 						dayVoteWidget->SetVisibility(ESlateVisibility::Visible);
 					}
 					else
@@ -174,10 +189,15 @@ void ACodePlayerController::Tick(float DeltaTime)
 						dayVoteWidget->SetVisibility(ESlateVisibility::Collapsed);
 						nightActionWidget->SetVisibility(ESlateVisibility::Collapsed);
 						nightResultWidget->SetVisibility(ESlateVisibility::Visible);
+						if (CodePlayerState->currentRole == ERoles::Mayor && !CodePlayerState->bHasRevealedRole)
+						{
+							revealeRoleWidget->SetVisibility(ESlateVisibility::Visible);
+						}
 					}
 					else
 					{
 						nightResultWidget->SetVisibility(ESlateVisibility::Collapsed);
+						revealeRoleWidget->SetVisibility(ESlateVisibility::Collapsed);
 					}
 					bShowMouseCursor = false;
 					SetInputMode(FInputModeGameOnly());

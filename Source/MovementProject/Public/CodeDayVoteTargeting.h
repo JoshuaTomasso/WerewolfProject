@@ -26,6 +26,9 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* PlayerNameText;
 
+	UPROPERTY(meta = (BindWidget))
+	UCodeButtonAndText* SkipVoteButton;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 	TSubclassOf<UCodeButtonAndText> ButtonAndTextWidget;
 

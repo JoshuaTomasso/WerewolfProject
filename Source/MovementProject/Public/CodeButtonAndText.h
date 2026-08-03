@@ -46,11 +46,17 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetupEntry(ACodePlayerState* PlayerReference);
 
+	UFUNCTION(BlueprintCallable, Category = "Setup")
+	void SetupSkipVoteEntry();
+
 	UFUNCTION()
 	void OnButtonPressed();
 
 	UFUNCTION()
 	void UpdateVoteCountDisplay();
+
+	UFUNCTION()
+	void UpdateSkipVoteCountDisplay();
 
 	UFUNCTION()
 	void ResetButtonColor();

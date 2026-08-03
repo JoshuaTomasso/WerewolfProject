@@ -12,6 +12,8 @@ void UCodeDayVoteTargeting::NativeConstruct()
 {
 	InitializationRetryCount = 0;
 	TryInitializePlayerState();
+
+	SkipVoteButton->SetupSkipVoteEntry();
 }
 
 void UCodeDayVoteTargeting::PopulateTargetList()

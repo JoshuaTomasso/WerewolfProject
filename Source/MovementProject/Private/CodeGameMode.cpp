@@ -79,6 +79,11 @@ void ACodeGameMode::AssignRoles()
 	rolePool.Add(ERoles::Werewolf);
 	rolePool.Add(ERoles::Medic);
 	rolePool.Add(ERoles::Seer);
+	rolePool.Add(ERoles::Mayor);
+	rolePool.Add(ERoles::Villager);
+	rolePool.Add(ERoles::Villager);
+	rolePool.Add(ERoles::Villager);
+
 
 	for (int32 i = rolePool.Num() - 1; i > 0; --i)
 	{
@@ -217,6 +222,8 @@ void ACodeGameMode::StartPhase(EPhases NewPhase)
 				PlayerState->votesOnPlayer = 0;
 				PlayerState->OnRep_VoteTarget();
 				PlayerState->OnRep_VotesOnPlayer();
+				CurrentGameState->SkipVoteCount = 0;
+				CurrentGameState->OnRep_SkipVoteCount();
 			}
 		}
 		break;
@@ -369,9 +376,28 @@ void ACodeGameMode::ResolveNightActions()
 
 void ACodeGameMode::ResolveVotes()
 {
+	for (ACodePlayerState* PlayerState : playerStates)
+	{
+		if (!PlayerState || !PlayerState->bIsAlive)
+		{
+			continue;
+		}
+
+		if (PlayerState && PlayerState->bIsAlive && PlayerState->currentRole == ERoles::Mayor)
+		{
+			if (PlayerState->bHasRevealedRole && PlayerState->voteTarget)
+			{
+				PlayerState->voteTarget->votesOnPlayer++;
+				PlayerState->voteTarget->OnRep_VotesOnPlayer();
+			}
+		}
+
+	}
+
 	ACodePlayerState* PlayerWithMostVotes = nullptr;
 	int32 HighestVoteCount = -1;
 	bool bTiedForFirst = false;
+
 
 	for (ACodePlayerState* PlayerState : playerStates)
 	{
@@ -379,7 +405,10 @@ void ACodeGameMode::ResolveVotes()
 		{
 			continue;
 		}
-		if (PlayerState->votesOnPlayer > HighestVoteCount)
+
+		ACodeGameState* CurrentGameState = Cast<ACodeGameState>(GetGameState<ACodeGameState>());
+
+		if (PlayerState->votesOnPlayer > HighestVoteCount && PlayerState->votesOnPlayer > CurrentGameState->SkipVoteCount)
 		{
 			HighestVoteCount = PlayerState->votesOnPlayer;
 			PlayerWithMostVotes = PlayerState;

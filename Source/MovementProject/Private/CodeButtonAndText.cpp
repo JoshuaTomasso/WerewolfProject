@@ -19,6 +19,12 @@ void UCodeButtonAndText::NativeDestruct()
 	{
 		targetPlayerState->OnVotesOnPlayerChanged.RemoveDynamic(this, &UCodeButtonAndText::UpdateVoteCountDisplay);
 	}
+
+	ACodeGameState* GameState = GetWorld() ? GetWorld()->GetGameState<ACodeGameState>() : nullptr;
+	if (GameState)
+	{
+		GameState->OnSkipVoteCountChanged.RemoveDynamic(this, &UCodeButtonAndText::UpdateSkipVoteCountDisplay);
+	}
 }
 
 void UCodeButtonAndText::SetupEntry(ACodePlayerState* PlayerReference)
@@ -39,6 +45,22 @@ void UCodeButtonAndText::SetupEntry(ACodePlayerState* PlayerReference)
 	UpdateVoteCountDisplay();
 }
 
+void UCodeButtonAndText::SetupSkipVoteEntry()
+{
+	PlayerNameButton->SetBackgroundColor(BaseButtonColor);
+	targetPlayerState = nullptr;
+
+	ACodeGameState* GameState = GetWorld()->GetGameState<ACodeGameState>();
+	if (GameState)
+	{
+		GameState->OnSkipVoteCountChanged.RemoveDynamic(this, &UCodeButtonAndText::UpdateSkipVoteCountDisplay);
+		GameState->OnSkipVoteCountChanged.AddDynamic(this, &UCodeButtonAndText::UpdateSkipVoteCountDisplay);
+	}
+
+	PlayerNameText->SetText(FText::FromString(TEXT("Skip Vote")));
+	UpdateSkipVoteCountDisplay();
+}
+
 void UCodeButtonAndText::OnButtonPressed()
 {
 	PlayerNameButton->SetBackgroundColor(ButtonClickedColor);
@@ -46,18 +68,23 @@ void UCodeButtonAndText::OnButtonPressed()
 
 	if (GetWorld()->GetGameState<ACodeGameState>()->currentPhase == EPhases::Night)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("OnButtonPressed NIGHT: Player %s pressed button for target %s"), *playerState->GetPlayerName(), *targetPlayerState->GetPlayerName());
-		if (playerState)
+		if (playerState && targetPlayerState)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("OnButtonPressed NIGHT: Player %s pressed button for target %s"), *playerState->GetPlayerName(), *targetPlayerState->GetPlayerName());
 			playerState->Server_SubmitNightAction(targetPlayerState);
 		}
 	}
 	else if (GetWorld()->GetGameState<ACodeGameState>()->currentPhase == EPhases::Voting)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("OnButtonPressed VOTING: Player %s pressed button for target %s"), *playerState->GetPlayerName(), *targetPlayerState->GetPlayerName());
-		if (playerState)
+		if (playerState && targetPlayerState)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("OnButtonPressed VOTING: Player %s pressed button for target %s"), *playerState->GetPlayerName(), *targetPlayerState->GetPlayerName());
 			playerState->Server_SubmitVote(targetPlayerState);
+		}
+		else if (playerState && targetPlayerState == nullptr && !playerState->bHasSubmittedVote)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("OnButtonPressed VOTING: Player %s pressed button for SKIP VOTE"), *playerState->GetPlayerName());
+			playerState->Server_SubmitVote(nullptr);
 		}
 	}
 
@@ -82,6 +109,24 @@ void UCodeButtonAndText::UpdateVoteCountDisplay()
 	else
 	{
 		PlayerNameText->SetText(FText::FromString(targetPlayerState->GetPlayerName()));
+	}
+}
+
+void UCodeButtonAndText::UpdateSkipVoteCountDisplay()
+{
+	ACodeGameState* GameState = GetWorld()->GetGameState<ACodeGameState>();
+	if (!GameState || !PlayerNameText)
+	{
+		return;
+	}
+
+	if (GameState->SkipVoteCount > 0)
+	{
+		PlayerNameText->SetText(FText::FromString(FString::Printf(TEXT("Skip Vote (%d)"), GameState->SkipVoteCount)));
+	}
+	else
+	{
+		PlayerNameText->SetText(FText::FromString(TEXT("Skip Vote")));
 	}
 }
 

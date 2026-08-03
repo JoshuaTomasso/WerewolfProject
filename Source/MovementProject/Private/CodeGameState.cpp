@@ -49,4 +49,10 @@ void ACodeGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME(ACodeGameState, phaseDuration);
 	DOREPLIFETIME(ACodeGameState, phaseEndTime);
 	DOREPLIFETIME(ACodeGameState, ExpectedPlayerCount);
+	DOREPLIFETIME(ACodeGameState, SkipVoteCount);
+}
+
+void ACodeGameState::OnRep_SkipVoteCount()
+{
+	OnSkipVoteCountChanged.Broadcast();
 }

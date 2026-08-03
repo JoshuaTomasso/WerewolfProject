@@ -7,6 +7,8 @@
 
 class ACodePlayerState;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSkipVoteCountChanged);
+
 /**
  *
  */
@@ -30,6 +32,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "Ints")
 	int ExpectedPlayerCount;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, ReplicatedUsing = OnRep_SkipVoteCount, Category = "Voting")
+	int32 SkipVoteCount;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnSkipVoteCountChanged OnSkipVoteCountChanged;
+
 	UFUNCTION(NetMulticast, Unreliable, BlueprintCallable, Category = "GameState")
 	void MulticastSendFinalPlayerList();
 
@@ -37,4 +45,7 @@ public:
 	void MulticastNotifyWinner(int winningTeam);
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	UFUNCTION()
+	void OnRep_SkipVoteCount();
 };
