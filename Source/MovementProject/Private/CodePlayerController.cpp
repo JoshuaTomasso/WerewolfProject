@@ -131,8 +131,7 @@ void ACodePlayerController::Tick(float DeltaTime)
 				ACodePlayerState* CodePlayerState = GetPlayerState<ACodePlayerState>();
 				if (CodePlayerState)
 				{
-					bShowMouseCursor = true;
-					SetInputMode(FInputModeGameAndUI());
+
 					FString RoleNameString = UEnum::GetValueAsString(CodePlayerState->currentRole);
 					RoleNameString.RemoveFromStart(TEXT("ERoles::"));
 
@@ -164,8 +163,7 @@ void ACodePlayerController::Tick(float DeltaTime)
 				ACodePlayerState* CodePlayerState = GetPlayerState<ACodePlayerState>();
 				if (CodePlayerState)
 				{
-					bShowMouseCursor = true;
-					SetInputMode(FInputModeGameAndUI());
+
 					if (dayVoteWidget && CodePlayerState->bIsAlive)
 					{
 						nightActionWidget->SetVisibility(ESlateVisibility::Collapsed);
@@ -199,8 +197,7 @@ void ACodePlayerController::Tick(float DeltaTime)
 						nightResultWidget->SetVisibility(ESlateVisibility::Collapsed);
 						revealeRoleWidget->SetVisibility(ESlateVisibility::Collapsed);
 					}
-					bShowMouseCursor = false;
-					SetInputMode(FInputModeGameOnly());
+
 				}
 			}
 

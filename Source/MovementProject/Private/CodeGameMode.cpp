@@ -387,6 +387,7 @@ void ACodeGameMode::ResolveVotes()
 		{
 			if (PlayerState->bHasRevealedRole && PlayerState->voteTarget)
 			{
+				UE_LOG(LogTemp, Error, TEXT("ResolveVotes: Mayor %s voted for %s."), *PlayerState->GetPlayerName(), *PlayerState->voteTarget->GetPlayerName());
 				PlayerState->voteTarget->votesOnPlayer++;
 				PlayerState->voteTarget->OnRep_VotesOnPlayer();
 			}
