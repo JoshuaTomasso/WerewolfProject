@@ -7,6 +7,7 @@
 #include "CodeGameState.h"
 #include "SRoleInfo.h"
 #include "Net/UnrealNetwork.h"
+#include "CodePlayerCharacter.h"
 
 void ACodePlayerState::Client_ReceiveRole_Implementation(ERoles roleToReveal)
 {
@@ -181,6 +182,17 @@ void ACodePlayerState::Server_RevealeRole_Implementation()
 {
 	bHasRevealedRole = true;
 	OnRep_HasRevealedRole();
+
+	ACodePlayerCharacter* PlayerCharacter = Cast<ACodePlayerCharacter>(GetPawn());
+
+	if (PlayerCharacter)
+	{
+		PlayerCharacter->Multicast_SetMayorRevealVisibility(true);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Server_RevealeRole_Implementation: PlayerCharacter is null"));
+	}
 }
 
 void ACodePlayerState::OnRep_CurrentRole()

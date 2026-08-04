@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Components/TextRenderComponent.h"
 #include "CodePlayerCharacter.generated.h"
 
 UCLASS()
@@ -15,6 +16,12 @@ class MOVEMENTPROJECT_API ACodePlayerCharacter : public ACharacter
 
 public:
 	ACodePlayerCharacter();
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
+    UTextRenderComponent* MayorRevealText;
+
+    UFUNCTION(NetMulticast, Reliable, BlueprintCallable, Category = "Roles")
+    void Multicast_SetMayorRevealVisibility(bool bIsVisible);
 
 protected:
 	virtual void BeginPlay() override;
@@ -47,7 +54,7 @@ protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
     UCharacterMovementComponent* MovementComponent;
-    
+
     void Move(const FInputActionValue& Value);
 
     void Look(const FInputActionValue& Value);

@@ -23,6 +23,19 @@ void ACodePlayerCharacter::BeginPlay()
             Subsystem->AddMappingContext(DefaultMappingContext, 0);
         }
     }
+
+    if (MayorRevealText)
+    {
+        MayorRevealText->SetVisibility(false);
+	}
+}
+
+void ACodePlayerCharacter::Multicast_SetMayorRevealVisibility_Implementation(bool bIsVisible)
+{
+    if (MayorRevealText)
+    {
+        MayorRevealText->SetVisibility(bIsVisible);
+    }
 }
 
 void ACodePlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -43,7 +56,7 @@ void ACodePlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 
         if (TabOutAction)
         {
-            EnhancedInputComponent->BindAction(TabOutAction, ETriggerEvent::Triggered, this, &ACodePlayerCharacter::TabOut);
+            EnhancedInputComponent->BindAction(TabOutAction, ETriggerEvent::Started, this, &ACodePlayerCharacter::TabOut);
 		}
 
         if (SprintAction)
@@ -62,7 +75,6 @@ void ACodePlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
         {
             EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACodePlayerCharacter::PlayerJump);
 			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACodePlayerCharacter::PlayerStopJumping);
-            EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Canceled, this, &ACodePlayerCharacter::PlayerStopJumping);
 		}
     }
 }
@@ -158,7 +170,7 @@ void ACodePlayerCharacter::PlayerUnCrouch(const FInputActionValue& Value)
 
 void ACodePlayerCharacter::PlayerJump(const FInputActionValue& Value)
 {
-    //if (!bIsJumping)
+    if (!bIsJumping)
     {
         bIsJumping = true;
         ACharacter::Jump();
