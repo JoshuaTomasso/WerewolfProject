@@ -8,4 +8,5 @@ enum class ETeams : uint8
 {
 	Werewolves UMETA(DisplayName = "Werewolves"),
 	Villagers  UMETA(DisplayName = "Villagers"),
+	None       UMETA(DisplayName = "None"),
 };

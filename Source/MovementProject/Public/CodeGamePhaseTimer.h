@@ -23,7 +23,6 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* GamePhaseText;
 
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Color")
 	FLinearColor lobbyColor;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Color")
@@ -32,6 +31,9 @@ public:
 	FLinearColor dayColor;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Color")
 	FLinearColor votingColor;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Color")
+	FLinearColor roleRevealColor;
 
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
+
 };

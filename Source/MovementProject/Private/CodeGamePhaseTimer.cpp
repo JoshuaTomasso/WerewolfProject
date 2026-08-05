@@ -10,15 +10,28 @@ void UCodeGamePhaseTimer::NativeTick(const FGeometry& MyGeometry, float InDeltaT
 
 	ACodeGameState* GameState = GetWorld()->GetGameState<ACodeGameState>();
 
-	if (GameState && GamePhaseText && GamePhaseTimerBar)
+	if (GameState)
 	{
-		GamePhaseText->SetText(FText::FromString(UEnum::GetValueAsString(GameState->currentPhase)));
-		GamePhaseTimerBar->SetPercent(FMath::Clamp((GameState->phaseEndTime - GetWorld()->GetTimeSeconds()) / GameState->phaseDuration, 0.0f, 1.0f));
+		UEnum* EnumPtr = FindObject<UEnum>(ANY_PACKAGE, TEXT("EPhases"));
+		if (EnumPtr)
+		{
+			GamePhaseText->SetText(EnumPtr->GetDisplayNameTextByValue((int64)GameState->currentPhase));
+		}
+
+		float TimePercent = FMath::Clamp((GameState->phaseEndTime - GetWorld()->GetTimeSeconds()) / GameState->phaseDuration, 0.0f, 1.0f);
+		GamePhaseTimerBar->SetPercent(TimePercent);
+
 		GamePhaseTimerBar->SetFillColorAndOpacity(
+			GameState->currentPhase == EPhases::RoleReveal ? roleRevealColor :
 			GameState->currentPhase == EPhases::Lobby ? lobbyColor :
 			GameState->currentPhase == EPhases::Night ? nightColor :
 			GameState->currentPhase == EPhases::Day ? dayColor :
 			GameState->currentPhase == EPhases::Voting ? votingColor : FLinearColor::White
 		);
 	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("GameState or UI elements are null in UCodeGamePhaseTimer::NativeTick"));
+	}
 }
+

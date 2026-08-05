@@ -15,6 +15,7 @@
 
 #include "CodeGameMode.generated.h"
 
+
 /**
  *
  */
@@ -44,6 +45,8 @@ public:
 	float dayDuration;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Floats")
 	float votingDuration;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Floats")
+	float roleRevealDuration;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ints")
 	int expectedPlayerCount;
@@ -51,18 +54,39 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bools")
 	bool bGameStarted;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bools")
-	bool bAValid;
+	bool bAValid = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bools")
-	bool bBValid;
+	bool bBValid = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Other")
 	ACodePlayerState* killTarget;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Other")
+	ACodePlayerState* protectionTarget;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Other")
+	ACodePlayerState* seererTarget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Other")
 	FTimerHandle phaseTimerHandle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Other")
 	FText partnerNameText;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Other")
+	class UDataTable* GameModeRoleDataTable;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WinConditions")
+	int winningTeam = -1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WinConditions")
+	int villagerCount = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WinConditions")
+	int werewolfCount = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WinConditions")
+	bool bGameOver = false;
 
 	void BeginPlay() override;
 
@@ -80,4 +104,11 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "GameMode")
 	void ResolveNightActions();
+
+	UFUNCTION(BlueprintCallable, Category = "GameMode")
+	void ResolveVotes();
+
+	UFUNCTION(BlueprintCallable, Category = "GameMode")
+	void CheckWinConditions();
+
 };

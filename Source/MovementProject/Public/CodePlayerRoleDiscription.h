@@ -20,4 +20,13 @@ public:
 	UTextBlock* RoleText;
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* RoleDetails;
+
+	FTimerHandle RemoveWidgetTimerHandle;
+
+	UFUNCTION()
+	void RemoveWidgetAfterDelay(float DelayTime = 3.0f);
+
+private:
+	UFUNCTION()
+	void OnRemoveWidgetTimer();
 };
