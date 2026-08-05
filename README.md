@@ -1,4 +1,4 @@
-# Werewolf: Social Deduction Multiplayer
+# Hidden Fangs
 
 ![Werewolf Main Game](Images/werewolf_roleReveal.png)
 
