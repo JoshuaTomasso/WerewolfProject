@@ -1,23 +1,23 @@
-#Hiden Fang
+# Hiden Fang
 
 A Unreal Engine 5 + C++ networked multiplayer social deduction game inspired by the classic party game Werewolf, built around server-authoritative gameplay, role-based abilities, and real-time replicated game state across multiple clients.
 
 This project was built as a fully networked multiplayer experience where players are secretly assigned roles, take actions during a Night phase, discuss and vote during a Day phase, and work to uncover or protect their team until one side wins.
 
-#Project Overview
+# Project Overview
 
 Werewolf is a phase-based social deduction game where players are secretly assigned one of several roles — Werewolf, Medic, Seer, Villager, or Mayor — each with distinct abilities and win conditions. Werewolves work together to eliminate Villagers each night, while Villagers use deduction, discussion, and voting to identify and eliminate the Werewolves before they're outnumbered.
 
 The project includes a complete multiplayer gameplay loop, from lobby-based matchmaking through role assignment, night actions, day voting, and win-condition resolution — all synchronized live across every connected client.
 
-#The project showcases:
+# The project showcases:
 
 Server-authoritative networked gameplay programming in Unreal Engine 5 using C++
 Replicated game state management using RepNotify, Server RPCs, and NetMulticast functions
 Role-based ability systems driven by data tables
 Real-time UI built with UMG, bound to live replicated data via delegates
 A full phase-based game state machine with server-controlled timers
-#Gameplay Summary
+# Gameplay Summary
 
 Players join a lobby and wait for the required player count before roles are secretly assigned. Once assigned, each player sees their role and, if applicable, their partner (Werewolves are paired and see each other's identity).
 
@@ -43,39 +43,39 @@ Voting ties result in no elimination for that round.
 All game logic — phase transitions, role assignment, action validation, and win conditions — is resolved on the server; clients only submit requests.
 Core Features
 
-#Role System
+# Role System
 
 Data-driven role definitions (team, description, night-action eligibility, ability limits) via Unreal DataTables
 Five distinct roles: Werewolf, Medic, Seer, Villager, Mayor
 Randomized role pool shuffling and assignment per match
 
-#Night Action System
+# Night Action System
 
 Server-validated target submission with self/partner-targeting restrictions
 Werewolf partner-vote coordination with live "partner's choice" display
 Medic protection resolution, including self-protection limits
 Seer investigation revealing a target's team
 
-#Day Voting System
+# Day Voting System
 
 Public voting with real-time vote-count display on each player entry
 Tie detection preventing incorrect eliminations
 Automatic elimination of the player with the most votes
 
-#Win Condition System
+# Win Condition System
 
 Live tracking of remaining players per team
 Automatic win evaluation after every phase
 Server multicast notification of match results to all clients
 
-#Multiplayer & Replication
+# Multiplayer & Replication
 
 Server-authoritative game state machine (Lobby → Role Reveal → Night → Day → Voting)
 Replicated player state (role, alive status, votes, targets) synchronized across all clients
 Server and Client RPCs for player actions and role/result delivery
 Manual RepNotify handling to keep listen-server hosts in sync with remote clients
 
-#UI
+# UI
 
 UMG widgets driven entirely by delegate broadcasts rather than polling, for responsive live updates
 Dynamic player-list widgets generated at runtime for targeting and voting
@@ -87,7 +87,7 @@ Night phase for role-based ability submissions
 Day phase for open discussion
 Voting phase for public elimination voting
 Win-condition resolution and match-end notification
-#Tech Stack
+# Tech Stack
 Engine: Unreal Engine 5
 Language: C++ (with supporting UMG/Blueprint widgets)
 Networking: Unreal Engine's built-in replication system (RPCs, RepNotify, NetMulticast)
