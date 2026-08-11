@@ -72,3 +72,9 @@ Plugins/**/Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+
+# Custom overrides for local build outputs
+Builds/
+*.log
+*.json
+*.bin
