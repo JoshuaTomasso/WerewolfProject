@@ -7,8 +7,7 @@
 
 void ACodeGameMode::BeginPlay()
 {
-	ACodeGameState* CurrentGameState = Cast<ACodeGameState>(GetGameState<ACodeGameState>());
-	if (CurrentGameState)
+	if (ACodeGameState* CurrentGameState = Cast<ACodeGameState>(GetGameState<ACodeGameState>()))
 	{
 		CurrentGameState->ExpectedPlayerCount = expectedPlayerCount;
 	}
@@ -25,38 +24,34 @@ void ACodeGameMode::OnPhaseTimerComplete()
 		UE_LOG(LogTemp, Warning, TEXT("OnPhaseTimerComplete: Game is over, cannot proceed to next phase"));
 		return;
 	}
-
-	ACodeGameState* CurrentGameState = Cast<ACodeGameState>(GetGameState<ACodeGameState>());
-	if (!CurrentGameState)
+	
+	if (const ACodeGameState* CurrentGameState = Cast<ACodeGameState>(GetGameState<ACodeGameState>()))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("OnPhaseTimerComplete: CurrentGameState is null"));
-		return;
-	}
-
-	switch (CurrentGameState->currentPhase)
-	{
-	case EPhases::RoleReveal:
-		StartPhase(EPhases::Night);
-		break;
-	case EPhases::Lobby:
-		StartPhase(EPhases::Night);
-		break;
-	case EPhases::Night:
-		ResolveNightActions();
-		CheckWinConditions();
-		StartPhase(EPhases::Day);
-		break;
-	case EPhases::Day:
-		CheckWinConditions();
-		StartPhase(EPhases::Voting);
-		break;
-	case EPhases::Voting:
-		ResolveVotes();
-		CheckWinConditions();
-		StartPhase(EPhases::Night);
-		break;
-	default:
-		break;
+		switch (CurrentGameState->currentPhase)
+		{
+		case EPhases::RoleReveal:
+			StartPhase(EPhases::Night);
+			break;
+		case EPhases::Lobby:
+			StartPhase(EPhases::Night);
+			break;
+		case EPhases::Night:
+			ResolveNightActions();
+			CheckWinConditions();
+			StartPhase(EPhases::Day);
+			break;
+		case EPhases::Day:
+			CheckWinConditions();
+			StartPhase(EPhases::Voting);
+			break;
+		case EPhases::Voting:
+			ResolveVotes();
+			CheckWinConditions();
+			StartPhase(EPhases::Night);
+			break;
+		default:
+			break;
+		}
 	}
 }
 
@@ -66,8 +61,7 @@ void ACodeGameMode::AssignRoles()
 
 	for (APlayerState* PlayerState : GetGameState<AGameStateBase>()->PlayerArray)
 	{
-		ACodePlayerState* CodePlayerState = Cast<ACodePlayerState>(PlayerState);
-		if (CodePlayerState)
+		if (ACodePlayerState* CodePlayerState = Cast<ACodePlayerState>(PlayerState))
 		{
 			playerStates.Add(CodePlayerState);
 		}
@@ -112,7 +106,7 @@ void ACodeGameMode::AssignRoles()
 	{
 		partnerNameText = FText::FromString(TEXT(""));
 
-		for (ACodePlayerState* Werewolf : werewolves)
+		for (const ACodePlayerState* Werewolf : werewolves)
 		{
 			if (PlayerState != Werewolf)
 			{
@@ -254,8 +248,7 @@ void ACodeGameMode::NotifyPlayerReady(ACodePlayerController* Controller)
 		readyPlayerControllers.Add(Controller);
 		if (readyPlayerControllers.Num() >= expectedPlayerCount && !bGameStarted)
 		{
-			ACodeGameState* CurrentGameState = Cast<ACodeGameState>(GetGameState<ACodeGameState>());
-			if (CurrentGameState)
+			if (ACodeGameState* CurrentGameState = Cast<ACodeGameState>(GetGameState<ACodeGameState>()))
 			{
 				CurrentGameState->MulticastSendFinalPlayerList();
 				AssignRoles();
@@ -317,7 +310,7 @@ void ACodeGameMode::ResolveNightActions()
 		FString TargetRoleNameString = UEnum::GetValueAsString(PlayerState->nightTarget->currentRole);
 		TargetRoleNameString.RemoveFromStart(TEXT("ERoles::"));
 
-		FSRoleInfo* RoleInfo = GameModeRoleDataTable->FindRow<FSRoleInfo>(*TargetRoleNameString, TEXT("PlayerControllerTick"));
+		const FSRoleInfo* RoleInfo = GameModeRoleDataTable->FindRow<FSRoleInfo>(*TargetRoleNameString, TEXT("PlayerControllerTick"));
 
 
 		if (PlayerState->currentRole == ERoles::Medic)
@@ -327,12 +320,13 @@ void ACodeGameMode::ResolveNightActions()
 			{
 				PlayerState->selfProtectedCount++;
 				protectionTarget->bIsProtected = true;
-				UE_LOG(LogTemp, Error, TEXT("ResolveNightActions: Medic %s protected themselves."), *PlayerState->GetPlayerName());
+				const FString PlayerName = PlayerState->GetPlayerName();
+				UE_LOG(LogTemp, Warning, TEXT("ResolveNightActions: Medic %s protected themselves."), *PlayerName);
 			}
 			else if (protectionTarget != PlayerState)
 			{
 				protectionTarget->bIsProtected = true;
-				UE_LOG(LogTemp, Error, TEXT("ResolveNightActions: %s was protected by the Medic."), *protectionTarget->GetPlayerName());
+				UE_LOG(LogTemp, Warning, TEXT("ResolveNightActions: %s was protected by the Medic."), *protectionTarget->GetPlayerName());
 			}
 		}
 		else if (PlayerState->currentRole == ERoles::Seer)
@@ -344,11 +338,9 @@ void ACodeGameMode::ResolveNightActions()
 				{
 					FString RoleTeam = UEnum::GetValueAsString(RoleInfo->team);
 					RoleTeam.RemoveFromStart(TEXT("ETeams::"));
-					UE_LOG(LogTemp, Error, TEXT("ResolveNightActions: %s's team is %s."), *seererTarget->GetPlayerName(), *RoleTeam);
+					UE_LOG(LogTemp, Warning, TEXT("ResolveNightActions: %s's team is %s."), *seererTarget->GetPlayerName(), *RoleTeam);
 					
-					ACodePlayerController* SeerController = Cast<ACodePlayerController>(PlayerState->GetOwner());
-					
-					if (SeerController)
+					if (ACodePlayerController* SeerController = Cast<ACodePlayerController>(PlayerState->GetOwner()))
 					{
 						SeerController->Client_SetNightResultText(RoleTeam);
 					}
@@ -360,14 +352,14 @@ void ACodeGameMode::ResolveNightActions()
 	}
 	if (killTarget && killTarget->bIsProtected)
 	{
-		UE_LOG(LogTemp, Error, TEXT("ResolveNightActions: %s was protected and survived the night."), *killTarget->GetPlayerName());
+		UE_LOG(LogTemp, Warning, TEXT("ResolveNightActions: %s was protected and survived the night."), *killTarget->GetPlayerName());
 		killTarget->bIsProtected = false;
 		killTarget = nullptr;
 		killTargetArray.Empty();
 	}
 	else if (killTarget)
 	{
-		UE_LOG(LogTemp, Error, TEXT("ResolveNightActions: %s was killed during the night."), *killTarget->GetPlayerName());
+		UE_LOG(LogTemp, Warning, TEXT("ResolveNightActions: %s was killed during the night."), *killTarget->GetPlayerName());
 		killTarget->bIsAlive = false;
 		killTarget = nullptr;
 		killTargetArray.Empty();
@@ -376,7 +368,7 @@ void ACodeGameMode::ResolveNightActions()
 
 void ACodeGameMode::ResolveVotes()
 {
-	for (ACodePlayerState* PlayerState : playerStates)
+	for (const ACodePlayerState* PlayerState : playerStates)
 	{
 		if (!PlayerState || !PlayerState->bIsAlive)
 		{
@@ -387,7 +379,7 @@ void ACodeGameMode::ResolveVotes()
 		{
 			if (PlayerState->bHasRevealedRole && PlayerState->voteTarget)
 			{
-				UE_LOG(LogTemp, Error, TEXT("ResolveVotes: Mayor %s voted for %s."), *PlayerState->GetPlayerName(), *PlayerState->voteTarget->GetPlayerName());
+				UE_LOG(LogTemp, Warning, TEXT("ResolveVotes: Mayor %s voted for %s."), *PlayerState->GetPlayerName(), *PlayerState->voteTarget->GetPlayerName());
 				PlayerState->voteTarget->votesOnPlayer++;
 				PlayerState->voteTarget->OnRep_VotesOnPlayer();
 			}
@@ -407,28 +399,29 @@ void ACodeGameMode::ResolveVotes()
 			continue;
 		}
 
-		ACodeGameState* CurrentGameState = Cast<ACodeGameState>(GetGameState<ACodeGameState>());
-
-		if (PlayerState->votesOnPlayer > HighestVoteCount && PlayerState->votesOnPlayer > CurrentGameState->SkipVoteCount)
+		if (ACodeGameState* CurrentGameState = Cast<ACodeGameState>(GetGameState<ACodeGameState>()))
 		{
-			HighestVoteCount = PlayerState->votesOnPlayer;
-			PlayerWithMostVotes = PlayerState;
-			bTiedForFirst = false;
-		}
-		else if (PlayerState->votesOnPlayer == HighestVoteCount)
-		{
-			bTiedForFirst = true;
+			if (PlayerState->votesOnPlayer > HighestVoteCount && PlayerState->votesOnPlayer > CurrentGameState->SkipVoteCount)
+			{
+				HighestVoteCount = PlayerState->votesOnPlayer;
+				PlayerWithMostVotes = PlayerState;
+				bTiedForFirst = false;
+			}
+			else if (PlayerState->votesOnPlayer == HighestVoteCount)
+			{
+				bTiedForFirst = true;
+			}
 		}
 	}
 
 	if (PlayerWithMostVotes && HighestVoteCount > 0 && !bTiedForFirst)
 	{
 		PlayerWithMostVotes->bIsAlive = false;
-		UE_LOG(LogTemp, Error, TEXT("ResolveVotes: %s was voted out."), *PlayerWithMostVotes->GetPlayerName());
+		UE_LOG(LogTemp, Warning, TEXT("ResolveVotes: %s was voted out."), *PlayerWithMostVotes->GetPlayerName());
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("ResolveVotes: No player was voted out due to a tie or no votes."));
+		UE_LOG(LogTemp, Warning, TEXT("ResolveVotes: No player was voted out due to a tie or no votes."));
 	}
 }
 
@@ -448,9 +441,7 @@ void ACodeGameMode::CheckWinConditions()
 		FString TargetRoleNameString = UEnum::GetValueAsString(PlayerState->currentRole);
 		TargetRoleNameString.RemoveFromStart(TEXT("ERoles::"));
 
-		FSRoleInfo* RoleInfo = GameModeRoleDataTable->FindRow<FSRoleInfo>(*TargetRoleNameString, TEXT("CheckWinConditions"));
-
-		if (RoleInfo)
+		if (const FSRoleInfo* RoleInfo = GameModeRoleDataTable->FindRow<FSRoleInfo>(*TargetRoleNameString, TEXT("CheckWinConditions")))
 		{
 			if (RoleInfo->team == ETeams::Villagers && PlayerState->bIsAlive)
 			{
@@ -481,9 +472,8 @@ void ACodeGameMode::CheckWinConditions()
 	{
 		winningTeam = -1; // No winner yet
 	}
-
-	ACodeGameState* MyGameState = GetGameState<ACodeGameState>();
-	if (MyGameState)
+	
+	if (ACodeGameState* MyGameState = GetGameState<ACodeGameState>())
 	{
 		MyGameState->MulticastNotifyWinner(winningTeam);
 
