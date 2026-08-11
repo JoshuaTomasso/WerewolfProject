@@ -1,11 +1,7 @@
 /.git
 /.idea
-
-# Visual Studio
 /.vs
 /.vscode
-
-# Unreal Engine
 /Builds
 /Content
 /DerivedDataCache
@@ -13,23 +9,3 @@
 /Import
 /Intermediate
 /Saved
-
-# JetBrains Rider / .idea
-.idea/
-*.iml
-*.iws
-
-# .NET Build Output & Caches
-[Bb]in/
-[Oo]bj/
-[Pp]ackages/
-*.user
-*.suo
-.vs/
-
-# Linux System Files
-*~
-.DS_Store
-Thumbs.db
-Desktop.ini
-.directory
