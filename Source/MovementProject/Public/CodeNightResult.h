@@ -23,8 +23,10 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* NightResultText;
 
+protected:
 	virtual void NativeConstruct() override;
 
+public:
 	UFUNCTION()
 	void UpdateNightResult(const FText& resultText);
 

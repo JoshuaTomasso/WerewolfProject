@@ -2,11 +2,13 @@
 
 
 #include "CodeGameInstance.h"
-
+#include "CodeSessionManager.h"
 #include "GameFramework/GameUserSettings.h"
 
 void UCodeGameInstance::Init()
 {
+	Super::Init();
+	
 	UGameUserSettings* UserSettings = GEngine->GetGameUserSettings();
 	
 	UserSettings->SetOverallScalabilityLevel(0);
