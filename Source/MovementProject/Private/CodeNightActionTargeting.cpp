@@ -56,23 +56,20 @@ void UCodeNightActionTargeting::PopulateTargetList()
 	}
 
 	PlayerChoicesScrollBox->ClearChildren();
-
-	AGameStateBase* GameStateBase = GetWorld()->GetGameState();
-	if (GameStateBase)
+	
+	if (AGameStateBase* GameStateBase = GetWorld()->GetGameState())
 	{
-		ACodeGameState* CodeGameState = Cast<ACodeGameState>(GameStateBase);
-		if (CodeGameState)
+		if (ACodeGameState* CodeGameState = Cast<ACodeGameState>(GameStateBase))
 		{
 			for (APlayerState* PlayerState : CodeGameState->PlayerArray)
 			{
-				ACodePlayerState* CodePlayerState = Cast<ACodePlayerState>(PlayerState);
-				if (CodePlayerState)
+				if (ACodePlayerState* CodePlayerState = Cast<ACodePlayerState>(PlayerState))
 				{
-					if (CodePlayerState->currentRole != ERoles::Medic && CodePlayerState == CastedPlayer)
+					if (CodePlayerState->CurrentRole != ERoles::Medic && CodePlayerState == CastedPlayer)
 					{
 						continue; // Skip self
 					}
-					else if (CastedPlayer->currentRole == ERoles::Werewolf && CodePlayerState == CastedPlayer->werewolfPartner)
+					else if (CastedPlayer->CurrentRole == ERoles::Werewolf && CodePlayerState == CastedPlayer->WerewolfPartner)
 					{
 						continue; // Skip the werewolf's partner
 					}
@@ -102,9 +99,9 @@ void UCodeNightActionTargeting::PopulateTargetList()
 
 void UCodeNightActionTargeting::UpdatePartnerVoteDisplay()
 {
-	if (PartnersTarget && PartnersTarget->nightTarget)
+	if (PartnersTarget && PartnersTarget->NightTarget)
 	{
-		ChosenPlayerName->SetText(FText::FromString(PartnersTarget->nightTarget->GetPlayerName()));
+		ChosenPlayerName->SetText(FText::FromString(PartnersTarget->NightTarget->GetPlayerName()));
 	}
 	else
 	{
@@ -114,16 +111,16 @@ void UCodeNightActionTargeting::UpdatePartnerVoteDisplay()
 
 void UCodeNightActionTargeting::OnRoleAssignedHandler()
 {
-	if (CastedPlayer->currentRole == ERoles::Werewolf)
+	if (CastedPlayer->CurrentRole == ERoles::Werewolf)
 	{
 		PartnerChoiceText->SetVisibility(ESlateVisibility::Visible);
 		ChosenPlayerName->SetVisibility(ESlateVisibility::Visible);
 
-		if (CastedPlayer->werewolfPartner)
+		if (CastedPlayer->WerewolfPartner)
 		{
-			PartnersTarget = CastedPlayer->werewolfPartner;
-			CastedPlayer->werewolfPartner->OnNightTargetChanged.RemoveDynamic(this, &UCodeNightActionTargeting::UpdatePartnerVoteDisplay);
-			CastedPlayer->werewolfPartner->OnNightTargetChanged.AddDynamic(this, &UCodeNightActionTargeting::UpdatePartnerVoteDisplay);
+			PartnersTarget = CastedPlayer->WerewolfPartner;
+			CastedPlayer->WerewolfPartner->OnNightTargetChanged.RemoveDynamic(this, &UCodeNightActionTargeting::UpdatePartnerVoteDisplay);
+			CastedPlayer->WerewolfPartner->OnNightTargetChanged.AddDynamic(this, &UCodeNightActionTargeting::UpdatePartnerVoteDisplay);
 			UpdatePartnerVoteDisplay();
 		}
 	}
@@ -138,11 +135,11 @@ void UCodeNightActionTargeting::OnRoleAssignedHandler()
 void UCodeNightActionTargeting::ShowVoteNotification()
 {
 
-	if (CastedPlayer->currentRole == ERoles::Medic)
+	if (CastedPlayer->CurrentRole == ERoles::Medic)
 	{
 		VoteNotificationText->SetText(FText::FromString("You have ran out of self protection"));
 	}
-	else if (CastedPlayer->currentRole == ERoles::Seer)
+	else if (CastedPlayer->CurrentRole == ERoles::Seer)
 	{
 		VoteNotificationText->SetText(FText::FromString("You have ran out of seer ability"));
 	}

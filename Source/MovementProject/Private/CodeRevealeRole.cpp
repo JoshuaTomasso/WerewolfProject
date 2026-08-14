@@ -6,14 +6,13 @@
 
 void UCodeRevealeRole::NativeConstruct()
 {
-	RevealeRoleButton->OnPressed.AddDynamic(this, &UCodeRevealeRole::OnRevealeRoleButtonPressed);
+	RevealeRoleButton->OnPressed.AddDynamic(this, &UCodeRevealeRole::OnRevealRoleButtonPressed);
 }
 
-void UCodeRevealeRole::OnRevealeRoleButtonPressed()
+void UCodeRevealeRole::OnRevealRoleButtonPressed()
 {
-	ACodePlayerState* playerState = Cast<ACodePlayerState>(GetOwningPlayer()->PlayerState);
-	if (playerState)
+	if (ACodePlayerState* PlayerState = Cast<ACodePlayerState>(GetOwningPlayer()->PlayerState))
 	{
-		playerState->Server_RevealeRole();
+		PlayerState->Server_RevealRole();
 	}
 }

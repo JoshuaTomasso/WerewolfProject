@@ -27,7 +27,7 @@ public:
 	UTextBlock* PlayerNameText;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player State")
-	ACodePlayerState* targetPlayerState;
+	ACodePlayerState* TargetPlayerState;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Color")
 	FLinearColor ButtonClickedColor;
@@ -40,9 +40,11 @@ public:
 
 	FTimerHandle ButtonResetTimerHandle;
 
+protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
 
+public:
 	UFUNCTION(BlueprintCallable)
 	void SetupEntry(ACodePlayerState* PlayerReference);
 

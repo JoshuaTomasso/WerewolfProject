@@ -28,13 +28,13 @@ protected:
 
 public:
 	UFUNCTION()
-	void UpdateNightResult(const FText& resultText);
+	void UpdateNightResult(const FText& ResultText) const;
 
 	UFUNCTION()
 	void ShowNightResult();
 
 	UFUNCTION()
-	void HideNightResult();
+	void HideNightResult() const;
 
 private:
 

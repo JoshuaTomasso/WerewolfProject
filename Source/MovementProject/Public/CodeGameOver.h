@@ -20,9 +20,9 @@ public:
 	UTextBlock* GameOverText;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Color")
-	FLinearColor werewolfWinnerColor;
+	FLinearColor WerewolfWinnerColor;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Color")
-	FLinearColor villagerWinnerColor;
+	FLinearColor VillagerWinnerColor;
 	
 };

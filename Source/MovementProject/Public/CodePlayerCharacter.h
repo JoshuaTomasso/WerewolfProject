@@ -28,6 +28,7 @@ protected:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
     class UInputMappingContext* DefaultMappingContext;
 

@@ -35,11 +35,12 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Session")
 	TArray<FString> FoundLobbyNames;
-
+	
 private:
 	TSharedPtr<FOnlineSessionSearch> SessionSearch;
 	FName PendingMapName;
-
+	bool bSearchInProgress = false;
+	
 	void HandleCreateSessionComplete(FName SessionName, bool bWasSuccessful) const;
 	void HandleFindSessionsComplete(bool bWasSuccessful);
 	void HandleJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result) const;

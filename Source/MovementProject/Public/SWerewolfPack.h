@@ -9,8 +9,8 @@ struct FSWerewolfPack
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Werewolf Pack")
-	APlayerState* wolfOne;
+	APlayerState* WolfOne;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Werewolf Pack")
-	APlayerState* wolfTwo;
+	APlayerState* WolfTwo;
 
 };

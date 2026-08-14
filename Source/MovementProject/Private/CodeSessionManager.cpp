@@ -50,12 +50,22 @@ void UCodeSessionManager::HandleCreateSessionComplete(FName SessionName, const b
 
 void UCodeSessionManager::FindLobbies()
 {
-	IOnlineSessionPtr SessionInterface = GetSessionInterface();
+	if (bSearchInProgress)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("FindLobbies: Search already in progress"));
+		return;
+	}
+	
+	UE_LOG(LogTemp, Warning, TEXT("FindLobbies: Searching"));
+
+	const IOnlineSessionPtr SessionInterface = GetSessionInterface();
 	if (!SessionInterface.IsValid())
 	{
 		return;
 	}
 
+	bSearchInProgress = true;
+	
 	SessionSearch = MakeShareable(new FOnlineSessionSearch());
 	SessionSearch->bIsLanQuery = true;
 	SessionSearch->MaxSearchResults = 20;
@@ -66,6 +76,8 @@ void UCodeSessionManager::FindLobbies()
 
 void UCodeSessionManager::HandleFindSessionsComplete(const bool bWasSuccessful)
 {
+	bSearchInProgress = false;
+	
 	FoundLobbyNames.Empty();
 
 	if (bWasSuccessful && SessionSearch.IsValid())
