@@ -1,6 +1,6 @@
-# Werewolf: Social Deduction Multiplayer
+# Hidden Fangs
 
-![Werewolf Main Game](Images/werewolf_roleReveal.png)
+![Hidden_Fangs Main Game](Images/werewolf_roleReveal.png)
 
 A **Unreal Engine 5 + C++** networked multiplayer social deduction game inspired by the classic party game Werewolf, built around server-authoritative gameplay, role-based abilities, and real-time replicated game state across multiple clients.
 
@@ -9,7 +9,7 @@ This project was built as a fully networked multiplayer experience where players
 ---
 
 ## Project Overview
-**Werewolf** is a phase-based social deduction game where players are secretly assigned one of several roles — Werewolf, Medic, Seer, Villager, or Mayor — each with distinct abilities and win conditions. Werewolves work together to eliminate Villagers each night, while Villagers use deduction, discussion, and voting to identify and eliminate the Werewolves before they're outnumbered.
+**Hidden Fangs** is a phase-based social deduction game where players are secretly assigned one of several roles — Werewolf, Medic, Seer, Villager, or Mayor — each with distinct abilities and win conditions. Werewolves work together to eliminate Villagers each night, while Villagers use deduction, discussion, and voting to identify and eliminate the Werewolves before they're outnumbered.
 
 The project includes a complete multiplayer gameplay loop, from lobby-based matchmaking through role assignment, night actions, day voting, and win-condition resolution — all synchronized live across every connected client.
 
@@ -37,7 +37,7 @@ The Gameplay Loop Features:
 5. Public day-phase voting with live vote-count display
 6. Automatic win-condition checking after every phase
 
-![Werewolf Night Phase](Images/werewolf_nightPhase.png)
+![Hidden_Fangs Night Phase](Images/werewolf_nightPhase.png)
 
 ---
 
@@ -57,7 +57,7 @@ The Gameplay Loop Features:
 
 ---
 
-![Werewolf Voting Phase](Images/werewolf_votingPhase.png)
+![Hidden_Fangs Voting Phase](Images/werewolf_votingPhase.png)
 
 ## Core Features
 
