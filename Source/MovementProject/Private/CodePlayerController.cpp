@@ -21,19 +21,19 @@ void ACodePlayerController::BeginPlay()
 	{
 		if (GamePhaseTimerWidgetClass)
 		{
-			gamePhaseTimerWidget = CreateWidget<UCodeGamePhaseTimer>(this, GamePhaseTimerWidgetClass);
-			if (gamePhaseTimerWidget)
+			GamePhaseTimerWidget = CreateWidget<UCodeGamePhaseTimer>(this, GamePhaseTimerWidgetClass);
+			if (GamePhaseTimerWidget)
 			{
-				gamePhaseTimerWidget->AddToViewport();
+				GamePhaseTimerWidget->AddToViewport();
 			}
 		}
 		if (NightActionWidgetClass)
 		{
-			nightActionWidget = CreateWidget<UCodeNightActionTargeting>(this, NightActionWidgetClass);
-			if (nightActionWidget)
+			NightActionWidget = CreateWidget<UCodeNightActionTargeting>(this, NightActionWidgetClass);
+			if (NightActionWidget)
 			{
-				nightActionWidget->AddToViewport();
-				nightActionWidget->SetVisibility(ESlateVisibility::Collapsed);
+				NightActionWidget->AddToViewport();
+				NightActionWidget->SetVisibility(ESlateVisibility::Collapsed);
 			}
 			else
 			{
@@ -42,11 +42,11 @@ void ACodePlayerController::BeginPlay()
 		}
 		if (DayVoteWidgetClass)
 		{
-			dayVoteWidget = CreateWidget<UCodeDayVoteTargeting>(this, DayVoteWidgetClass);
-			if (dayVoteWidget)
+			DayVoteWidget = CreateWidget<UCodeDayVoteTargeting>(this, DayVoteWidgetClass);
+			if (DayVoteWidget)
 			{
-				dayVoteWidget->AddToViewport();
-				dayVoteWidget->SetVisibility(ESlateVisibility::Collapsed);
+				DayVoteWidget->AddToViewport();
+				DayVoteWidget->SetVisibility(ESlateVisibility::Collapsed);
 			}
 			else
 			{
@@ -55,11 +55,11 @@ void ACodePlayerController::BeginPlay()
 		}
 		if (GameOverWidgetClass)
 		{
-			gameOverWidget = CreateWidget<UCodeGameOver>(this, GameOverWidgetClass);
-			if (gameOverWidget)
+			GameOverWidget = CreateWidget<UCodeGameOver>(this, GameOverWidgetClass);
+			if (GameOverWidget)
 			{
-				gameOverWidget->AddToViewport();
-				gameOverWidget->SetVisibility(ESlateVisibility::Collapsed);
+				GameOverWidget->AddToViewport();
+				GameOverWidget->SetVisibility(ESlateVisibility::Collapsed);
 			}
 			else
 			{
@@ -68,24 +68,24 @@ void ACodePlayerController::BeginPlay()
 		}
 		if (NightResultWidgetClass)
 		{
-			nightResultWidget = CreateWidget<UCodeNightResult>(this, NightResultWidgetClass);
-			if (nightResultWidget)
+			NightResultWidget = CreateWidget<UCodeNightResult>(this, NightResultWidgetClass);
+			if (NightResultWidget)
 			{
-				nightResultWidget->AddToViewport();
-				nightResultWidget->SetVisibility(ESlateVisibility::Collapsed);
+				NightResultWidget->AddToViewport();
+				NightResultWidget->SetVisibility(ESlateVisibility::Collapsed);
 			}
 			else
 			{
 				UE_LOG(LogTemp, Warning, TEXT("BeginPlay: nightResultWidget is null"));
 			}
 		}
-		if (RevealeRoleWidgetClass)
+		if (RevealRoleWidgetClass)
 		{
-			revealeRoleWidget = CreateWidget<UCodeRevealeRole>(this, RevealeRoleWidgetClass);
-			if (revealeRoleWidget)
+			RevealRoleWidget = CreateWidget<UCodeRevealeRole>(this, RevealRoleWidgetClass);
+			if (RevealRoleWidget)
 			{
-				revealeRoleWidget->AddToViewport();
-				revealeRoleWidget->SetVisibility(ESlateVisibility::Collapsed);
+				RevealRoleWidget->AddToViewport();
+				RevealRoleWidget->SetVisibility(ESlateVisibility::Collapsed);
 			}
 			else
 			{
@@ -95,7 +95,7 @@ void ACodePlayerController::BeginPlay()
 	}
 }
 
-void ACodePlayerController::Tick(float DeltaTime)
+void ACodePlayerController::Tick(const float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
@@ -116,39 +116,36 @@ void ACodePlayerController::Tick(float DeltaTime)
 
 		if (GameState)
 		{
-			if (GameState->currentPhase == EPhases::Night && bHasAckedReady)
+			if (GameState->CurrentPhase == EPhases::Night && bHasAckedReady)
 			{
-				if (dayVoteWidget)
+				if (DayVoteWidget)
 				{
-					dayVoteWidget->SetVisibility(ESlateVisibility::Collapsed);
-					nightResultWidget->SetVisibility(ESlateVisibility::Collapsed);
+					DayVoteWidget->SetVisibility(ESlateVisibility::Collapsed);
+					NightResultWidget->SetVisibility(ESlateVisibility::Collapsed);
 				}
 				else
 				{
 					UE_LOG(LogTemp, Warning, TEXT("Tick: dayVoteWidget is null"));
 				}
-
-				ACodePlayerState* CodePlayerState = GetPlayerState<ACodePlayerState>();
-				if (CodePlayerState)
+				
+				if (const ACodePlayerState* CodePlayerState = GetPlayerState<ACodePlayerState>())
 				{
 
-					FString RoleNameString = UEnum::GetValueAsString(CodePlayerState->currentRole);
+					FString RoleNameString = UEnum::GetValueAsString(CodePlayerState->CurrentRole);
 					RoleNameString.RemoveFromStart(TEXT("ERoles::"));
 
-					FSRoleInfo* RoleInfo = ControllerRoleDataTable->FindRow<FSRoleInfo>(*RoleNameString, TEXT("PlayerControllerTick"));
-
-					if (RoleInfo)
+					if (const FSRoleInfo* RoleInfo = ControllerRoleDataTable->FindRow<FSRoleInfo>(*RoleNameString, TEXT("PlayerControllerTick")))
 					{
 
 						if (RoleInfo->bCanActAtNight)
 						{
-							if (nightActionWidget && CodePlayerState->bIsAlive)
+							if (NightActionWidget && CodePlayerState->bIsAlive)
 							{
-								nightActionWidget->SetVisibility(ESlateVisibility::Visible);
+								NightActionWidget->SetVisibility(ESlateVisibility::Visible);
 							}
 							else
 							{
-								nightActionWidget->SetVisibility(ESlateVisibility::Collapsed);
+								NightActionWidget->SetVisibility(ESlateVisibility::Collapsed);
 							}
 							bNightWidgetActive = true;
 						}
@@ -157,65 +154,63 @@ void ACodePlayerController::Tick(float DeltaTime)
 
 				}
 			}
-			else if (GameState->currentPhase == EPhases::Voting && bHasAckedReady)
+			else if (GameState->CurrentPhase == EPhases::Voting && bHasAckedReady)
 			{
-
-				ACodePlayerState* CodePlayerState = GetPlayerState<ACodePlayerState>();
-				if (CodePlayerState)
+				if (const ACodePlayerState* CodePlayerState = GetPlayerState<ACodePlayerState>())
 				{
 
-					if (dayVoteWidget && CodePlayerState->bIsAlive)
+					if (DayVoteWidget && CodePlayerState->bIsAlive)
 					{
-						nightActionWidget->SetVisibility(ESlateVisibility::Collapsed);
-						nightResultWidget->SetVisibility(ESlateVisibility::Collapsed);
-						revealeRoleWidget->SetVisibility(ESlateVisibility::Collapsed);
-						dayVoteWidget->SetVisibility(ESlateVisibility::Visible);
+						NightActionWidget->SetVisibility(ESlateVisibility::Collapsed);
+						NightResultWidget->SetVisibility(ESlateVisibility::Collapsed);
+						RevealRoleWidget->SetVisibility(ESlateVisibility::Collapsed);
+						DayVoteWidget->SetVisibility(ESlateVisibility::Visible);
 					}
 					else
 					{
-						dayVoteWidget->SetVisibility(ESlateVisibility::Collapsed);
+						DayVoteWidget->SetVisibility(ESlateVisibility::Collapsed);
 					}
 				}
 			}
-			else if (GameState->currentPhase == EPhases::Day && bHasAckedReady)
+			else if (GameState->CurrentPhase == EPhases::Day && bHasAckedReady)
 			{
-				ACodePlayerState* CodePlayerState = GetPlayerState<ACodePlayerState>();
-				if (CodePlayerState)
+				
+				if (const ACodePlayerState* CodePlayerState = GetPlayerState<ACodePlayerState>())
 				{
-					if (nightResultWidget && CodePlayerState->bIsAlive)
+					if (NightResultWidget && CodePlayerState->bIsAlive)
 					{
-						dayVoteWidget->SetVisibility(ESlateVisibility::Collapsed);
-						nightActionWidget->SetVisibility(ESlateVisibility::Collapsed);
-						nightResultWidget->SetVisibility(ESlateVisibility::Visible);
-						if (CodePlayerState->currentRole == ERoles::Mayor && !CodePlayerState->bHasRevealedRole)
+						DayVoteWidget->SetVisibility(ESlateVisibility::Collapsed);
+						NightActionWidget->SetVisibility(ESlateVisibility::Collapsed);
+						NightResultWidget->SetVisibility(ESlateVisibility::Visible);
+						if (CodePlayerState->CurrentRole == ERoles::Mayor && !CodePlayerState->bHasRevealedRole)
 						{
-							revealeRoleWidget->SetVisibility(ESlateVisibility::Visible);
+							RevealRoleWidget->SetVisibility(ESlateVisibility::Visible);
 						}
 					}
 					else
 					{
-						nightResultWidget->SetVisibility(ESlateVisibility::Collapsed);
-						revealeRoleWidget->SetVisibility(ESlateVisibility::Collapsed);
+						NightResultWidget->SetVisibility(ESlateVisibility::Collapsed);
+						RevealRoleWidget->SetVisibility(ESlateVisibility::Collapsed);
 					}
 
 				}
 			}
 
-			if (GameState->currentPhase == EPhases::Night && !bNightTargetListPopulated)
+			if (GameState->CurrentPhase == EPhases::Night && !bNightTargetListPopulated)
 			{
-				nightActionWidget->PopulateTargetList();
+				NightActionWidget->PopulateTargetList();
 				bNightTargetListPopulated = true;
 			}
-			else if (GameState->currentPhase == EPhases::Day && bNightTargetListPopulated)
+			else if (GameState->CurrentPhase == EPhases::Day && bNightTargetListPopulated)
 			{
 				bNightTargetListPopulated = false;
 			}
-			else if (GameState->currentPhase == EPhases::Voting && !bDayTargetListPopulated)
+			else if (GameState->CurrentPhase == EPhases::Voting && !bDayTargetListPopulated)
 			{
-				dayVoteWidget->PopulateTargetList();
+				DayVoteWidget->PopulateTargetList();
 				bDayTargetListPopulated = true;
 			}
-			else if (GameState->currentPhase == EPhases::Night && bDayTargetListPopulated)
+			else if (GameState->CurrentPhase == EPhases::Night && bDayTargetListPopulated)
 			{
 				bDayTargetListPopulated = false;
 			}
@@ -225,9 +220,7 @@ void ACodePlayerController::Tick(float DeltaTime)
 
 void ACodePlayerController::Server_NotifyReady_Implementation()
 {
-	ACodeGameMode* GameMode = Cast<ACodeGameMode>(GetWorld()->GetAuthGameMode());
-
-	if (GameMode)
+	if (ACodeGameMode* GameMode = Cast<ACodeGameMode>(GetWorld()->GetAuthGameMode()))
 	{
 		GameMode->NotifyPlayerReady(this);
 	}
@@ -239,10 +232,10 @@ void ACodePlayerController::Server_NotifyReady_Implementation()
 
 void ACodePlayerController::Client_SetNightResultText_Implementation(const FString& ResultText)
 {
-	if (nightResultWidget)
+	if (NightResultWidget)
 	{
-		nightResultWidget->UpdateNightResult(FText::FromString(ResultText));
-		nightResultWidget->ShowNightResult();
+		NightResultWidget->UpdateNightResult(FText::FromString(ResultText));
+		NightResultWidget->ShowNightResult();
 	}
 	else
 	{
@@ -252,12 +245,12 @@ void ACodePlayerController::Client_SetNightResultText_Implementation(const FStri
 
 void ACodePlayerController::ShowGameOverWidget(FString WinningFaction)
 {
-	if (gameOverWidget)
+	if (GameOverWidget)
 	{
-		gamePhaseTimerWidget->SetVisibility(ESlateVisibility::Collapsed);
-		gameOverWidget->SetVisibility(ESlateVisibility::Visible);
+		GamePhaseTimerWidget->SetVisibility(ESlateVisibility::Collapsed);
+		GameOverWidget->SetVisibility(ESlateVisibility::Visible);
 
-		gameOverWidget->GameOverText->SetText(FText::FromString(WinningFaction));
+		GameOverWidget->GameOverText->SetText(FText::FromString(WinningFaction));
 	}
 	else
 	{

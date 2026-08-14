@@ -24,16 +24,18 @@ public:
 	UTextBlock* GamePhaseText;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Color")
-	FLinearColor lobbyColor;
+	FLinearColor LobbyColor;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Color")
-	FLinearColor nightColor;
+	FLinearColor NightColor;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Color")
-	FLinearColor dayColor;
+	FLinearColor DayColor;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Color")
-	FLinearColor votingColor;
+	FLinearColor VotingColor;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Color")
-	FLinearColor roleRevealColor;
+	FLinearColor RoleRevealColor;
 
+	
+protected:
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 };

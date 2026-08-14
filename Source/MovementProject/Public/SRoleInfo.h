@@ -12,22 +12,22 @@ struct FSRoleInfo : public FTableRowBase
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	ERoles role;
+	ERoles Role;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	ETeams team;
+	ETeams Team;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FText displayName;
+	FText DisplayName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FText description;
+	FText Description;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UTexture2D* icon;
+	UTexture2D* Icon;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int nightActionOrder;
+	int NightActionOrder;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bCanActAtNight;

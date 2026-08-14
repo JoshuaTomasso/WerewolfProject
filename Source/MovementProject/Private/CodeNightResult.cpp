@@ -11,11 +11,11 @@ void UCodeNightResult::NativeConstruct()
 	NightResultText->SetVisibility(ESlateVisibility::Collapsed);
 }
 
-void UCodeNightResult::UpdateNightResult(const FText& resultText)
+void UCodeNightResult::UpdateNightResult(const FText& ResultText) const
 {
 	if (NightResultText)
 	{
-		NightResultText->SetText(resultText);
+		NightResultText->SetText(ResultText);
 	}
 }
 
@@ -35,7 +35,7 @@ void UCodeNightResult::ShowNightResult()
 	}
 }
 
-void UCodeNightResult::HideNightResult()
+void UCodeNightResult::HideNightResult() const
 {
 	if (NightResultText)
 	{
@@ -45,36 +45,32 @@ void UCodeNightResult::HideNightResult()
 
 void UCodeNightResult::TryInitializePlayerState()
 {
-	APlayerController* OwningController = GetOwningPlayer();
-	if (!OwningController)
+	if (const APlayerController* OwningController = GetOwningPlayer())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("TryInitializePlayerState: No owning controller"));
-		return;
-	}
-
-	if (OwningController->PlayerState)
-	{
-		if (ACodePlayerState* PlayerState = Cast<ACodePlayerState>(OwningController->PlayerState))
+		if (OwningController->PlayerState)
 		{
-			if (PlayerNameText)
+			if (const ACodePlayerState* PlayerState = Cast<ACodePlayerState>(OwningController->PlayerState))
 			{
-				PlayerNameText->SetText(FText::FromString(PlayerState->GetPlayerName()));
+				if (PlayerNameText)
+				{
+					PlayerNameText->SetText(FText::FromString(PlayerState->GetPlayerName()));
+				}
 			}
 		}
-	}
-	else if (InitializationRetryCount < 50)
-	{
-		InitializationRetryCount++;
-		GetWorld()->GetTimerManager().SetTimer(
-			InitializationTimerHandle,
-			this,
-			&UCodeNightResult::TryInitializePlayerState,
-			0.1f,
-			false
-		);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("TryInitializePlayerState: Failed to initialize after 50 attempts, giving up"));
+		else if (InitializationRetryCount < 50)
+		{
+			InitializationRetryCount++;
+			GetWorld()->GetTimerManager().SetTimer(
+				InitializationTimerHandle,
+				this,
+				&UCodeNightResult::TryInitializePlayerState,
+				0.1f,
+				false
+			);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("TryInitializePlayerState: Failed to initialize after 50 attempts, giving up"));
+		}
 	}
 }

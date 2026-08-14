@@ -110,9 +110,7 @@ void ACodePlayerCharacter::Look(const FInputActionValue& Value)
 
 void ACodePlayerCharacter::TabOut(const FInputActionValue& Value)
 {
-	ACodePlayerController* CodePlayerController = Cast<ACodePlayerController>(GetController());
-
-    if (CodePlayerController)
+    if (ACodePlayerController* CodePlayerController = Cast<ACodePlayerController>(GetController()))
     {
         CodePlayerController->bShowMouseCursor = ~CodePlayerController->bShowMouseCursor;
         if (CodePlayerController->bShowMouseCursor)

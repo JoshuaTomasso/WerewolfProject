@@ -3,14 +3,13 @@
 #include "CodeGameMode.h"
 #include "Containers/List.h"
 #include "SRoleInfo.h"
-
+#include "CodeGameState.h"
 
 void ACodeGameMode::BeginPlay()
 {
-	ACodeGameState* CurrentGameState = Cast<ACodeGameState>(GetGameState<ACodeGameState>());
-	if (CurrentGameState)
+	if (ACodeGameState* CurrentGameState = Cast<ACodeGameState>(GetGameState<ACodeGameState>()))
 	{
-		CurrentGameState->ExpectedPlayerCount = expectedPlayerCount;
+		CurrentGameState->ExpectedPlayerCount = ExpectedPlayerCount;
 	}
 	else
 	{
@@ -25,134 +24,129 @@ void ACodeGameMode::OnPhaseTimerComplete()
 		UE_LOG(LogTemp, Warning, TEXT("OnPhaseTimerComplete: Game is over, cannot proceed to next phase"));
 		return;
 	}
-
-	ACodeGameState* CurrentGameState = Cast<ACodeGameState>(GetGameState<ACodeGameState>());
-	if (!CurrentGameState)
+	
+	if (const ACodeGameState* CurrentGameState = Cast<ACodeGameState>(GetGameState<ACodeGameState>()))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("OnPhaseTimerComplete: CurrentGameState is null"));
-		return;
-	}
-
-	switch (CurrentGameState->currentPhase)
-	{
-	case EPhases::RoleReveal:
-		StartPhase(EPhases::Night);
-		break;
-	case EPhases::Lobby:
-		StartPhase(EPhases::Night);
-		break;
-	case EPhases::Night:
-		ResolveNightActions();
-		CheckWinConditions();
-		StartPhase(EPhases::Day);
-		break;
-	case EPhases::Day:
-		CheckWinConditions();
-		StartPhase(EPhases::Voting);
-		break;
-	case EPhases::Voting:
-		ResolveVotes();
-		CheckWinConditions();
-		StartPhase(EPhases::Night);
-		break;
-	default:
-		break;
+		switch (CurrentGameState->CurrentPhase)
+		{
+		case EPhases::RoleReveal:
+			StartPhase(EPhases::Night);
+			break;
+		case EPhases::Lobby:
+			StartPhase(EPhases::Night);
+			break;
+		case EPhases::Night:
+			ResolveNightActions();
+			CheckWinConditions();
+			StartPhase(EPhases::Day);
+			break;
+		case EPhases::Day:
+			CheckWinConditions();
+			StartPhase(EPhases::Voting);
+			break;
+		case EPhases::Voting:
+			ResolveVotes();
+			CheckWinConditions();
+			StartPhase(EPhases::Night);
+			break;
+		default:
+			break;
+		}
 	}
 }
 
 void ACodeGameMode::AssignRoles()
 {
-	playerStates.Empty();
+	PlayerStates.Empty();
 
 	for (APlayerState* PlayerState : GetGameState<AGameStateBase>()->PlayerArray)
 	{
-		ACodePlayerState* CodePlayerState = Cast<ACodePlayerState>(PlayerState);
-		if (CodePlayerState)
+		if (ACodePlayerState* CodePlayerState = Cast<ACodePlayerState>(PlayerState))
 		{
-			playerStates.Add(CodePlayerState);
+			PlayerStates.Add(CodePlayerState);
 		}
 	}
 
-	rolePool.Empty();
+	RolePool.Empty();
 
-	rolePool.Add(ERoles::Werewolf);
-	rolePool.Add(ERoles::Werewolf);
-	rolePool.Add(ERoles::Medic);
-	rolePool.Add(ERoles::Seer);
-	rolePool.Add(ERoles::Mayor);
-	rolePool.Add(ERoles::Villager);
-	rolePool.Add(ERoles::Villager);
-	rolePool.Add(ERoles::Villager);
+	RolePool.Add(ERoles::Werewolf);
+	RolePool.Add(ERoles::Werewolf);
+	RolePool.Add(ERoles::Medic);
+	RolePool.Add(ERoles::Seer);
+	RolePool.Add(ERoles::Mayor);
+	RolePool.Add(ERoles::Villager);
+	RolePool.Add(ERoles::Villager);
+	RolePool.Add(ERoles::Villager);
 
 
-	for (int32 i = rolePool.Num() - 1; i > 0; --i)
+	for (int32 i = RolePool.Num() - 1; i > 0; --i)
 	{
-		int32 RandomIndex = FMath::RandRange(0, i);
-		rolePool.Swap(i, RandomIndex);
+		const int32 RandomIndex = FMath::RandRange(0, i);
+		RolePool.Swap(i, RandomIndex);
 	}
 
-	for (int i = 0; i <= playerStates.Num() - 1; ++i)
+	for (int i = 0; i <= PlayerStates.Num() - 1; ++i)
 	{
-		playerStates[i]->currentRole = rolePool[i];
+		PlayerStates[i]->CurrentRole = RolePool[i];
 
-		playerStates[i]->Client_ReceiveRole(playerStates[i]->currentRole);
+		PlayerStates[i]->Client_ReceiveRole(PlayerStates[i]->CurrentRole);
 
-		if (playerStates[i]->currentRole == ERoles::Werewolf)
+		if (PlayerStates[i]->CurrentRole == ERoles::Werewolf)
 		{
-			werewolves.Add(playerStates[i]);
-			if (werewolves.Num() == 2)
+			Werewolves.Add(PlayerStates[i]);
+			if (Werewolves.Num() == 2)
 			{
-				werewolves[0]->werewolfPartner = werewolves[1];
-				werewolves[1]->werewolfPartner = werewolves[0];
+				Werewolves[0]->WerewolfPartner = Werewolves[1];
+				Werewolves[1]->WerewolfPartner = Werewolves[0];
 			}
 		}
 	}
 
-	for (ACodePlayerState* PlayerState : werewolves)
+	for (ACodePlayerState* PlayerState : Werewolves)
 	{
-		partnerNameText = FText::FromString(TEXT(""));
+		PartnerNameText = FText::FromString(TEXT(""));
 
-		for (ACodePlayerState* Werewolf : werewolves)
+		for (const ACodePlayerState* Werewolf : Werewolves)
 		{
 			if (PlayerState != Werewolf)
 			{
-				if (!partnerNameText.IsEmpty())
+				if (!PartnerNameText.IsEmpty())
 				{
-					partnerNameText = FText::Format(FText::FromString(TEXT("{0}, {1}")), partnerNameText, FText::FromString(Werewolf->GetPlayerName()));
+					PartnerNameText = FText::Format(FText::FromString(TEXT("{0}, {1}")), PartnerNameText, FText::FromString(Werewolf->GetPlayerName()));
 				}
 				else
 				{
-					partnerNameText = FText::FromString(Werewolf->GetPlayerName());
+					PartnerNameText = FText::FromString(Werewolf->GetPlayerName());
 				}
 			}
 		}
-		PlayerState->Client_ReceiveWerewolfPartner(partnerNameText);
+		PlayerState->Client_ReceiveWerewolfPartner(PartnerNameText);
 	}
 
-	werewolfPacks.Empty();
+	WerewolfPacks.Empty();
 
-	for (int i = 0; i < werewolves.Num() - 1; i++)
+	for (int i = 0; i < Werewolves.Num() - 1; i++)
 	{
 		if (i % 2 == 0)
 		{
-			if (i + 1 < werewolves.Num())
+			if (i + 1 < Werewolves.Num())
 			{
 				FSWerewolfPack NewPack;
-				NewPack.wolfOne = werewolves[i];
-				NewPack.wolfTwo = werewolves[i + 1];
-				werewolfPacks.Add(NewPack);
+				NewPack.WolfOne = Werewolves[i];
+				NewPack.WolfTwo = Werewolves[i + 1];
+				WerewolfPacks.Add(NewPack);
 			}
 			else
 			{
 				FSWerewolfPack NewPack;
-				NewPack.wolfOne = werewolves[i];
-				NewPack.wolfTwo = nullptr;
-				werewolfPacks.Add(NewPack);
+				NewPack.WolfOne = Werewolves[i];
+				NewPack.WolfTwo = nullptr;
+				WerewolfPacks.Add(NewPack);
 			}
 		}
 	}
 
-	for (ACodePlayerState* PlayerState : playerStates)
+	for (ACodePlayerState* PlayerState : PlayerStates)
 	{
 		if (PlayerState)
 		{
@@ -162,7 +156,7 @@ void ACodeGameMode::AssignRoles()
 }
 
 
-void ACodeGameMode::StartPhase(EPhases NewPhase)
+void ACodeGameMode::StartPhase(const EPhases NewPhase)
 {
 	if (bGameOver)
 	{
@@ -177,49 +171,49 @@ void ACodeGameMode::StartPhase(EPhases NewPhase)
 		return;
 	}
 
-	CurrentGameState->currentPhase = NewPhase;
+	CurrentGameState->CurrentPhase = NewPhase;
 	const float CurrentTime = GetWorld()->GetTimeSeconds();
 
-	switch (CurrentGameState->currentPhase)
+	switch (CurrentGameState->CurrentPhase)
 	{
 	case EPhases::RoleReveal:
-		CurrentGameState->phaseTimeRemaining = roleRevealDuration;
-		CurrentGameState->phaseDuration = CurrentGameState->phaseTimeRemaining;
-		CurrentGameState->phaseEndTime = CurrentTime + CurrentGameState->phaseDuration;
+		CurrentGameState->PhaseTimeRemaining = RoleRevealDuration;
+		CurrentGameState->PhaseDuration = CurrentGameState->PhaseTimeRemaining;
+		CurrentGameState->PhaseEndTime = CurrentTime + CurrentGameState->PhaseDuration;
 		break;
 	case EPhases::Lobby:
-		CurrentGameState->phaseTimeRemaining = 0.0f;
-		CurrentGameState->phaseDuration = CurrentGameState->phaseTimeRemaining;
-		CurrentGameState->phaseEndTime = CurrentTime + CurrentGameState->phaseDuration;
+		CurrentGameState->PhaseTimeRemaining = 0.0f;
+		CurrentGameState->PhaseDuration = CurrentGameState->PhaseTimeRemaining;
+		CurrentGameState->PhaseEndTime = CurrentTime + CurrentGameState->PhaseDuration;
 		break;
 	case EPhases::Night:
-		CurrentGameState->phaseTimeRemaining = nightDuration;
-		CurrentGameState->phaseDuration = CurrentGameState->phaseTimeRemaining;
-		CurrentGameState->phaseEndTime = CurrentTime + CurrentGameState->phaseDuration;
-		for (ACodePlayerState* PlayerState : playerStates)
+		CurrentGameState->PhaseTimeRemaining = NightDuration;
+		CurrentGameState->PhaseDuration = CurrentGameState->PhaseTimeRemaining;
+		CurrentGameState->PhaseEndTime = CurrentTime + CurrentGameState->PhaseDuration;
+		for (ACodePlayerState* PlayerState : PlayerStates)
 		{
 			if (PlayerState)
 			{
 				PlayerState->bHasSubmittedNightAction = false;
-				PlayerState->nightTarget = nullptr;
+				PlayerState->NightTarget = nullptr;
 				PlayerState->bIsProtected = false;
-				PlayerState->votesOnPlayer = 0;
+				PlayerState->VotesOnPlayer = 0;
 				PlayerState->OnRep_VotesOnPlayer();
 				PlayerState->OnRep_NightTarget();
 			}
 		}
 		break;
 	case EPhases::Day:
-		CurrentGameState->phaseTimeRemaining = dayDuration;
-		CurrentGameState->phaseDuration = CurrentGameState->phaseTimeRemaining;
-		CurrentGameState->phaseEndTime = CurrentTime + CurrentGameState->phaseDuration;
-		for (ACodePlayerState* PlayerState : playerStates)
+		CurrentGameState->PhaseTimeRemaining = DayDuration;
+		CurrentGameState->PhaseDuration = CurrentGameState->PhaseTimeRemaining;
+		CurrentGameState->PhaseEndTime = CurrentTime + CurrentGameState->PhaseDuration;
+		for (ACodePlayerState* PlayerState : PlayerStates)
 		{
 			if (PlayerState)
 			{
 				PlayerState->bHasSubmittedVote = false;
-				PlayerState->voteTarget = nullptr;
-				PlayerState->votesOnPlayer = 0;
+				PlayerState->VoteTarget = nullptr;
+				PlayerState->VotesOnPlayer = 0;
 				PlayerState->OnRep_VoteTarget();
 				PlayerState->OnRep_VotesOnPlayer();
 				CurrentGameState->SkipVoteCount = 0;
@@ -228,34 +222,33 @@ void ACodeGameMode::StartPhase(EPhases NewPhase)
 		}
 		break;
 	case EPhases::Voting:
-		CurrentGameState->phaseTimeRemaining = votingDuration;
-		CurrentGameState->phaseDuration = CurrentGameState->phaseTimeRemaining;
-		CurrentGameState->phaseEndTime = CurrentTime + CurrentGameState->phaseDuration;
+		CurrentGameState->PhaseTimeRemaining = VotingDuration;
+		CurrentGameState->PhaseDuration = CurrentGameState->PhaseTimeRemaining;
+		CurrentGameState->PhaseEndTime = CurrentTime + CurrentGameState->PhaseDuration;
 
 		break;
 	default:
 		break;
 	}
 
-	GetWorld()->GetTimerManager().ClearTimer(phaseTimerHandle);
+	GetWorld()->GetTimerManager().ClearTimer(PhaseTimerHandle);
 	GetWorld()->GetTimerManager().SetTimer(
-		phaseTimerHandle,
+		PhaseTimerHandle,
 		this,
 		&ACodeGameMode::OnPhaseTimerComplete,
-		CurrentGameState->phaseTimeRemaining,
+		CurrentGameState->PhaseTimeRemaining,
 		false
 	);
 }
 
 void ACodeGameMode::NotifyPlayerReady(ACodePlayerController* Controller)
 {
-	if (!readyPlayerControllers.Contains(Controller))
+	if (!ReadyPlayerControllers.Contains(Controller))
 	{
-		readyPlayerControllers.Add(Controller);
-		if (readyPlayerControllers.Num() >= expectedPlayerCount && !bGameStarted)
+		ReadyPlayerControllers.Add(Controller);
+		if (ReadyPlayerControllers.Num() >= ExpectedPlayerCount && !bGameStarted)
 		{
-			ACodeGameState* CurrentGameState = Cast<ACodeGameState>(GetGameState<ACodeGameState>());
-			if (CurrentGameState)
+			if (ACodeGameState* CurrentGameState = Cast<ACodeGameState>(GetGameState<ACodeGameState>()))
 			{
 				CurrentGameState->MulticastSendFinalPlayerList();
 				AssignRoles();
@@ -272,83 +265,82 @@ void ACodeGameMode::NotifyPlayerReady(ACodePlayerController* Controller)
 
 void ACodeGameMode::ResolveNightActions()
 {
-	if (werewolves[0]->nightTarget && werewolves[0]->nightTarget->bIsAlive)
+	if (Werewolves[0]->NightTarget && Werewolves[0]->NightTarget->bIsAlive)
 	{
 		bAValid = true;
-		killTargetArray.Add(werewolves[0]->nightTarget);
+		KillTargetArray.Add(Werewolves[0]->NightTarget);
 	}
-	if (werewolves[1]->nightTarget && werewolves[1]->nightTarget->bIsAlive)
+	if (Werewolves[1]->NightTarget && Werewolves[1]->NightTarget->bIsAlive)
 	{
 		bBValid = true;
-		killTargetArray.Add(werewolves[1]->nightTarget);
+		KillTargetArray.Add(Werewolves[1]->NightTarget);
 	}
 
 	if (bAValid && bBValid)
 	{
-		if (werewolves[0]->nightTarget == werewolves[1]->nightTarget)
+		if (Werewolves[0]->NightTarget == Werewolves[1]->NightTarget)
 		{
-			killTarget = werewolves[0]->nightTarget;
+			KillTarget = Werewolves[0]->NightTarget;
 		}
 		else
 		{
-			int32 RandomIndex = FMath::RandRange(0, killTargetArray.Num() - 1);
-			killTarget = killTargetArray[RandomIndex];
+			const int32 RandomIndex = FMath::RandRange(0, KillTargetArray.Num() - 1);
+			KillTarget = KillTargetArray[RandomIndex];
 		}
 	}
 	else if (bAValid)
 	{
-		killTarget = werewolves[0]->nightTarget;
+		KillTarget = Werewolves[0]->NightTarget;
 	}
 	else if (bBValid)
 	{
-		killTarget = werewolves[1]->nightTarget;
+		KillTarget = Werewolves[1]->NightTarget;
 	}
 	else
 	{
-		killTarget = nullptr;
+		KillTarget = nullptr;
 	}
-	for (ACodePlayerState* PlayerState : playerStates)
+	for (ACodePlayerState* PlayerState : PlayerStates)
 	{
-		if (!PlayerState || !PlayerState->nightTarget)
+		if (!PlayerState || !PlayerState->NightTarget)
 		{
 			continue;
 		}
 
-		FString TargetRoleNameString = UEnum::GetValueAsString(PlayerState->nightTarget->currentRole);
+		FString TargetRoleNameString = UEnum::GetValueAsString(PlayerState->NightTarget->CurrentRole);
 		TargetRoleNameString.RemoveFromStart(TEXT("ERoles::"));
 
-		FSRoleInfo* RoleInfo = GameModeRoleDataTable->FindRow<FSRoleInfo>(*TargetRoleNameString, TEXT("PlayerControllerTick"));
+		const FSRoleInfo* RoleInfo = GameModeRoleDataTable->FindRow<FSRoleInfo>(*TargetRoleNameString, TEXT("PlayerControllerTick"));
 
 
-		if (PlayerState->currentRole == ERoles::Medic)
+		if (PlayerState->CurrentRole == ERoles::Medic)
 		{
-			protectionTarget = PlayerState->nightTarget;
-			if (PlayerState == protectionTarget && PlayerState->selfProtectedCount < 3)
+			ProtectionTarget = PlayerState->NightTarget;
+			if (PlayerState == ProtectionTarget && PlayerState->SelfProtectedCount < 3)
 			{
-				PlayerState->selfProtectedCount++;
-				protectionTarget->bIsProtected = true;
-				UE_LOG(LogTemp, Error, TEXT("ResolveNightActions: Medic %s protected themselves."), *PlayerState->GetPlayerName());
+				PlayerState->SelfProtectedCount++;
+				ProtectionTarget->bIsProtected = true;
+				const FString PlayerName = PlayerState->GetPlayerName();
+				UE_LOG(LogTemp, Warning, TEXT("ResolveNightActions: Medic %s protected themselves."), *PlayerName);
 			}
-			else if (protectionTarget != PlayerState)
+			else if (ProtectionTarget != PlayerState)
 			{
-				protectionTarget->bIsProtected = true;
-				UE_LOG(LogTemp, Error, TEXT("ResolveNightActions: %s was protected by the Medic."), *protectionTarget->GetPlayerName());
+				ProtectionTarget->bIsProtected = true;
+				UE_LOG(LogTemp, Warning, TEXT("ResolveNightActions: %s was protected by the Medic."), *ProtectionTarget->GetPlayerName());
 			}
 		}
-		else if (PlayerState->currentRole == ERoles::Seer)
+		else if (PlayerState->CurrentRole == ERoles::Seer)
 		{
-			seererTarget = PlayerState->nightTarget;
-			if (seererTarget)
+			SeererTarget = PlayerState->NightTarget;
+			if (SeererTarget)
 			{
 				if (RoleInfo)
 				{
-					FString RoleTeam = UEnum::GetValueAsString(RoleInfo->team);
+					FString RoleTeam = UEnum::GetValueAsString(RoleInfo->Team);
 					RoleTeam.RemoveFromStart(TEXT("ETeams::"));
-					UE_LOG(LogTemp, Error, TEXT("ResolveNightActions: %s's team is %s."), *seererTarget->GetPlayerName(), *RoleTeam);
+					UE_LOG(LogTemp, Warning, TEXT("ResolveNightActions: %s's team is %s."), *SeererTarget->GetPlayerName(), *RoleTeam);
 					
-					ACodePlayerController* SeerController = Cast<ACodePlayerController>(PlayerState->GetOwner());
-					
-					if (SeerController)
+					if (ACodePlayerController* SeerController = Cast<ACodePlayerController>(PlayerState->GetOwner()))
 					{
 						SeerController->Client_SetNightResultText(RoleTeam);
 					}
@@ -358,38 +350,38 @@ void ACodeGameMode::ResolveNightActions()
 		}
 
 	}
-	if (killTarget && killTarget->bIsProtected)
+	if (KillTarget && KillTarget->bIsProtected)
 	{
-		UE_LOG(LogTemp, Error, TEXT("ResolveNightActions: %s was protected and survived the night."), *killTarget->GetPlayerName());
-		killTarget->bIsProtected = false;
-		killTarget = nullptr;
-		killTargetArray.Empty();
+		UE_LOG(LogTemp, Warning, TEXT("ResolveNightActions: %s was protected and survived the night."), *KillTarget->GetPlayerName());
+		KillTarget->bIsProtected = false;
+		KillTarget = nullptr;
+		KillTargetArray.Empty();
 	}
-	else if (killTarget)
+	else if (KillTarget)
 	{
-		UE_LOG(LogTemp, Error, TEXT("ResolveNightActions: %s was killed during the night."), *killTarget->GetPlayerName());
-		killTarget->bIsAlive = false;
-		killTarget = nullptr;
-		killTargetArray.Empty();
+		UE_LOG(LogTemp, Warning, TEXT("ResolveNightActions: %s was killed during the night."), *KillTarget->GetPlayerName());
+		KillTarget->bIsAlive = false;
+		KillTarget = nullptr;
+		KillTargetArray.Empty();
 	}
 }
 
 void ACodeGameMode::ResolveVotes()
 {
-	for (ACodePlayerState* PlayerState : playerStates)
+	for (const ACodePlayerState* PlayerState : PlayerStates)
 	{
 		if (!PlayerState || !PlayerState->bIsAlive)
 		{
 			continue;
 		}
 
-		if (PlayerState && PlayerState->bIsAlive && PlayerState->currentRole == ERoles::Mayor)
+		if (PlayerState && PlayerState->bIsAlive && PlayerState->CurrentRole == ERoles::Mayor)
 		{
-			if (PlayerState->bHasRevealedRole && PlayerState->voteTarget)
+			if (PlayerState->bHasRevealedRole && PlayerState->VoteTarget)
 			{
-				UE_LOG(LogTemp, Error, TEXT("ResolveVotes: Mayor %s voted for %s."), *PlayerState->GetPlayerName(), *PlayerState->voteTarget->GetPlayerName());
-				PlayerState->voteTarget->votesOnPlayer++;
-				PlayerState->voteTarget->OnRep_VotesOnPlayer();
+				UE_LOG(LogTemp, Warning, TEXT("ResolveVotes: Mayor %s voted for %s."), *PlayerState->GetPlayerName(), *PlayerState->VoteTarget->GetPlayerName());
+				PlayerState->VoteTarget->VotesOnPlayer++;
+				PlayerState->VoteTarget->OnRep_VotesOnPlayer();
 			}
 		}
 
@@ -400,44 +392,45 @@ void ACodeGameMode::ResolveVotes()
 	bool bTiedForFirst = false;
 
 
-	for (ACodePlayerState* PlayerState : playerStates)
+	for (ACodePlayerState* PlayerState : PlayerStates)
 	{
 		if (!PlayerState || !PlayerState->bIsAlive)
 		{
 			continue;
 		}
 
-		ACodeGameState* CurrentGameState = Cast<ACodeGameState>(GetGameState<ACodeGameState>());
-
-		if (PlayerState->votesOnPlayer > HighestVoteCount && PlayerState->votesOnPlayer > CurrentGameState->SkipVoteCount)
+		if (const ACodeGameState* CurrentGameState = Cast<ACodeGameState>(GetGameState<ACodeGameState>()))
 		{
-			HighestVoteCount = PlayerState->votesOnPlayer;
-			PlayerWithMostVotes = PlayerState;
-			bTiedForFirst = false;
-		}
-		else if (PlayerState->votesOnPlayer == HighestVoteCount)
-		{
-			bTiedForFirst = true;
+			if (PlayerState->VotesOnPlayer > HighestVoteCount && PlayerState->VotesOnPlayer > CurrentGameState->SkipVoteCount)
+			{
+				HighestVoteCount = PlayerState->VotesOnPlayer;
+				PlayerWithMostVotes = PlayerState;
+				bTiedForFirst = false;
+			}
+			else if (PlayerState->VotesOnPlayer == HighestVoteCount)
+			{
+				bTiedForFirst = true;
+			}
 		}
 	}
 
 	if (PlayerWithMostVotes && HighestVoteCount > 0 && !bTiedForFirst)
 	{
 		PlayerWithMostVotes->bIsAlive = false;
-		UE_LOG(LogTemp, Error, TEXT("ResolveVotes: %s was voted out."), *PlayerWithMostVotes->GetPlayerName());
+		UE_LOG(LogTemp, Warning, TEXT("ResolveVotes: %s was voted out."), *PlayerWithMostVotes->GetPlayerName());
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("ResolveVotes: No player was voted out due to a tie or no votes."));
+		UE_LOG(LogTemp, Warning, TEXT("ResolveVotes: No player was voted out due to a tie or no votes."));
 	}
 }
 
 void ACodeGameMode::CheckWinConditions()
 {
-	villagerCount = 0;
-	werewolfCount = 0;
+	VillagerCount = 0;
+	WerewolfCount = 0;
 
-	for (ACodePlayerState* PlayerState : playerStates)
+	for (const ACodePlayerState* PlayerState : PlayerStates)
 	{
 		if (!PlayerState)
 		{
@@ -445,20 +438,18 @@ void ACodeGameMode::CheckWinConditions()
 			continue;
 		}
 
-		FString TargetRoleNameString = UEnum::GetValueAsString(PlayerState->currentRole);
+		FString TargetRoleNameString = UEnum::GetValueAsString(PlayerState->CurrentRole);
 		TargetRoleNameString.RemoveFromStart(TEXT("ERoles::"));
 
-		FSRoleInfo* RoleInfo = GameModeRoleDataTable->FindRow<FSRoleInfo>(*TargetRoleNameString, TEXT("CheckWinConditions"));
-
-		if (RoleInfo)
+		if (const FSRoleInfo* RoleInfo = GameModeRoleDataTable->FindRow<FSRoleInfo>(*TargetRoleNameString, TEXT("CheckWinConditions")))
 		{
-			if (RoleInfo->team == ETeams::Villagers && PlayerState->bIsAlive)
+			if (RoleInfo->Team == ETeams::Villagers && PlayerState->bIsAlive)
 			{
-				villagerCount++;
+				VillagerCount++;
 			}
-			else if (RoleInfo->team == ETeams::Werewolves && PlayerState->bIsAlive)
+			else if (RoleInfo->Team == ETeams::Werewolves && PlayerState->bIsAlive)
 			{
-				werewolfCount++;
+				WerewolfCount++;
 			}
 		}
 		else
@@ -467,38 +458,36 @@ void ACodeGameMode::CheckWinConditions()
 		}
 	}
 
-	if (werewolfCount == 0)
+	if (WerewolfCount == 0)
 	{
-		winningTeam = 1; // Villagers win
+		WinningTeam = 1; // Villagers win
 		bGameOver = true;
 	}
-	else if (villagerCount < werewolfCount)
+	else if (VillagerCount < WerewolfCount)
 	{
-		winningTeam = 2; // Werewolves win
+		WinningTeam = 2; // Werewolves win
 		bGameOver = true;
 	}
 	else
 	{
-		winningTeam = -1; // No winner yet
+		WinningTeam = -1; // No winner yet
 	}
-
-	ACodeGameState* MyGameState = GetGameState<ACodeGameState>();
-	if (MyGameState)
+	
+	if (ACodeGameState* MyGameState = GetGameState<ACodeGameState>())
 	{
-		MyGameState->MulticastNotifyWinner(winningTeam);
+		MyGameState->MulticastNotifyWinner(WinningTeam);
 
 		if (bGameOver)
 		{
-			GetWorld()->GetTimerManager().ClearTimer(phaseTimerHandle);
-			MyGameState->phaseTimeRemaining = 0.0f;
-			MyGameState->phaseDuration = 0.0f;
+			GetWorld()->GetTimerManager().ClearTimer(PhaseTimerHandle);
+			MyGameState->PhaseTimeRemaining = 0.0f;
+			MyGameState->PhaseDuration = 0.0f;
 		}
 	}
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("CheckWinConditions: MyGameState is null : Final Check"));
 	}
-
 }
 
 

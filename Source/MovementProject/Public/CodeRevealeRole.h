@@ -20,9 +20,10 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	UButton* RevealeRoleButton;
 
-	virtual void NativeConstruct() override;
-
 	UFUNCTION()
-	void OnRevealeRoleButtonPressed();
+	void OnRevealRoleButtonPressed();
+
+protected:
+	virtual void NativeConstruct() override;
 
 };

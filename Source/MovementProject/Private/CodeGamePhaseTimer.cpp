@@ -7,26 +7,24 @@
 void UCodeGamePhaseTimer::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
-
-	ACodeGameState* GameState = GetWorld()->GetGameState<ACodeGameState>();
-
-	if (GameState)
+	
+	if (ACodeGameState* GameState = GetWorld()->GetGameState<ACodeGameState>())
 	{
-		UEnum* EnumPtr = FindObject<UEnum>(ANY_PACKAGE, TEXT("EPhases"));
-		if (EnumPtr)
+		
+		if (const UEnum* EnumPtr = FindObject<UEnum>(ANY_PACKAGE, TEXT("EPhases")))
 		{
-			GamePhaseText->SetText(EnumPtr->GetDisplayNameTextByValue((int64)GameState->currentPhase));
+			GamePhaseText->SetText(EnumPtr->GetDisplayNameTextByValue(static_cast<int64>(GameState->CurrentPhase)));
 		}
 
-		float TimePercent = FMath::Clamp((GameState->phaseEndTime - GetWorld()->GetTimeSeconds()) / GameState->phaseDuration, 0.0f, 1.0f);
+		const float TimePercent = FMath::Clamp((GameState->PhaseEndTime - GameState->GetServerWorldTimeSeconds()) / GameState->PhaseDuration, 0.0f, 1.0f);
 		GamePhaseTimerBar->SetPercent(TimePercent);
 
 		GamePhaseTimerBar->SetFillColorAndOpacity(
-			GameState->currentPhase == EPhases::RoleReveal ? roleRevealColor :
-			GameState->currentPhase == EPhases::Lobby ? lobbyColor :
-			GameState->currentPhase == EPhases::Night ? nightColor :
-			GameState->currentPhase == EPhases::Day ? dayColor :
-			GameState->currentPhase == EPhases::Voting ? votingColor : FLinearColor::White
+			GameState->CurrentPhase == EPhases::RoleReveal ? RoleRevealColor :
+			GameState->CurrentPhase == EPhases::Lobby ? LobbyColor :
+			GameState->CurrentPhase == EPhases::Night ? NightColor :
+			GameState->CurrentPhase == EPhases::Day ? DayColor :
+			GameState->CurrentPhase == EPhases::Voting ? VotingColor : FLinearColor::White
 		);
 	}
 	else

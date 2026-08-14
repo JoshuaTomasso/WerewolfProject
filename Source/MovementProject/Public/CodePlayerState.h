@@ -29,34 +29,34 @@ class MOVEMENTPROJECT_API ACodePlayerState : public APlayerState
 public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Floats")
-	float duration;
+	float Duration;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ints", Replicated, ReplicatedUsing = OnRep_VoteErrorCount)
-	int voteErrorCount;
+	int VoteErrorCount;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ints", Replicated, ReplicatedUsing = OnRep_TargetDeadCount)
-	int targetDeadCount;
+	int TargetDeadCount;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ints", Replicated, ReplicatedUsing = OnRep_VotesOnPlayer)
-	int votesOnPlayer;
+	int VotesOnPlayer;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ints")
-	int selfProtectedCount;
+	int SelfProtectedCount;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ints")
-	int seerAbilityCount;
+	int SeerAbilityCount;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player States", Replicated, ReplicatedUsing = OnRep_NightTarget)
-	ACodePlayerState* nightTarget;
+	ACodePlayerState* NightTarget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player States", Replicated, ReplicatedUsing = OnRep_VoteTarget)
-	ACodePlayerState* voteTarget;
+	ACodePlayerState* VoteTarget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player States")
-	ACodePlayerState* playerVote;
+	ACodePlayerState* PlayerVote;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player States", Replicated)
-	ACodePlayerState* werewolfPartner;
+	ACodePlayerState* WerewolfPartner;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bools", Replicated)
 	bool bIsAlive;
@@ -74,7 +74,7 @@ public:
 	bool bHasRevealedRole;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Role", Replicated, ReplicatedUsing = OnRep_CurrentRole)
-	ERoles currentRole;
+	ERoles CurrentRole;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Role")
 	class UDataTable* RoleDataTable;
@@ -110,19 +110,19 @@ public:
 	FOnHasRevealedRoleChanged OnHasRevealedRoleChanged;
 
 	UFUNCTION(Client, Unreliable, BlueprintCallable, Category = "GameState")
-	void Client_ReceiveRole(ERoles roleToReveal);
+	void Client_ReceiveRole(ERoles RoleToReveal);
 
 	UFUNCTION(Client, Unreliable, BlueprintCallable, Category = "GameState")
-	void Client_ReceiveWerewolfPartner(const FText& partnerName);
+	void Client_ReceiveWerewolfPartner(const FText& PartnerName);
 
 	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "GameState")
-	void Server_SubmitNightAction(ACodePlayerState* abilityTarget);
+	void Server_SubmitNightAction(ACodePlayerState* AbilityTarget);
 
 	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "GameState")
-	void Server_SubmitVote(ACodePlayerState* abilityTarget);
+	void Server_SubmitVote(ACodePlayerState* AbilityTarget);
 
 	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "GameState")
-	void Server_RevealeRole();
+	void Server_RevealRole();
 
 	UFUNCTION()
 	void OnRep_CurrentRole();

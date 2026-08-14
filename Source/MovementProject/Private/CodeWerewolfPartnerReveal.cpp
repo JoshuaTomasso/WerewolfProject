@@ -3,9 +3,9 @@
 
 #include "CodeWerewolfPartnerReveal.h"
 
-void UCodeWerewolfPartnerReveal::RemoveWidgetAfterDelay(float DelayTime)
+void UCodeWerewolfPartnerReveal::RemoveWidgetAfterDelay(const float DelayTime)
 {
-	if (UWorld* World = GetWorld())
+	if (const UWorld* World = GetWorld())
 	{
 		World->GetTimerManager().ClearTimer(RemoveWidgetTimerHandle);
 

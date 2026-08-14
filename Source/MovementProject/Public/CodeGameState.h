@@ -20,14 +20,14 @@ class MOVEMENTPROJECT_API ACodeGameState : public AGameStateBase
 public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "Phases")
-	EPhases currentPhase;
+	EPhases CurrentPhase;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "Floats")
-	float phaseTimeRemaining;
+	float PhaseTimeRemaining;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "Floats")
-	float phaseDuration;
+	float PhaseDuration;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "Floats")
-	float phaseEndTime;
+	float PhaseEndTime;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated, Category = "Ints")
 	int ExpectedPlayerCount;
@@ -42,10 +42,10 @@ public:
 	void MulticastSendFinalPlayerList();
 
 	UFUNCTION(NetMulticast, Unreliable, BlueprintCallable, Category = "GameState")
-	void MulticastNotifyWinner(int winningTeam);
+	void MulticastNotifyWinner(int WinningTeam);
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION()
-	void OnRep_SkipVoteCount();
+	void OnRep_SkipVoteCount() const;
 };

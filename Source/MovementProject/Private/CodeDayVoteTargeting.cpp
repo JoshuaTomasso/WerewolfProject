@@ -19,19 +19,15 @@ void UCodeDayVoteTargeting::NativeConstruct()
 void UCodeDayVoteTargeting::PopulateTargetList()
 {
 	PlayerChoicesScrollBox->ClearChildren();
-
-	AGameStateBase* GameStateBase = GetWorld()->GetGameState();
-	if (GameStateBase)
+	
+	if (AGameStateBase* GameStateBase = GetWorld()->GetGameState())
 	{
-		ACodeGameState* CodeGameState = Cast<ACodeGameState>(GameStateBase);
-		if (CodeGameState)
+		if (ACodeGameState* CodeGameState = Cast<ACodeGameState>(GameStateBase))
 		{
 			for (APlayerState* PlayerState : CodeGameState->PlayerArray)
 			{
-				ACodePlayerState* CodePlayerState = Cast<ACodePlayerState>(PlayerState);
-				if (CodePlayerState)
+				if (ACodePlayerState* CodePlayerState = Cast<ACodePlayerState>(PlayerState))
 				{
-
 					if (CodePlayerState->bIsAlive)
 					{
 						UCodeButtonAndText* NewEntry = CreateWidget<UCodeButtonAndText>(this, ButtonAndTextWidget);
@@ -45,10 +41,6 @@ void UCodeDayVoteTargeting::PopulateTargetList()
 				}
 			}
 		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("PopulateTargetList: GameState is not ACodeGameState"));
-		}
 	}
 	else
 	{
@@ -58,36 +50,32 @@ void UCodeDayVoteTargeting::PopulateTargetList()
 
 void UCodeDayVoteTargeting::TryInitializePlayerState()
 {
-	APlayerController* OwningController = GetOwningPlayer();
-	if (!OwningController)
+	if (const APlayerController* OwningController = GetOwningPlayer())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("TryInitializePlayerState: No owning controller"));
-		return;
-	}
-
-	if (OwningController->PlayerState)
-	{
-		if (ACodePlayerState* PlayerState = Cast<ACodePlayerState>(OwningController->PlayerState))
+		if (OwningController->PlayerState)
 		{
-			if (PlayerNameText)
+			if (const ACodePlayerState* PlayerState = Cast<ACodePlayerState>(OwningController->PlayerState))
 			{
-				PlayerNameText->SetText(FText::FromString(PlayerState->GetPlayerName()));
+				if (PlayerNameText)
+				{
+					PlayerNameText->SetText(FText::FromString(PlayerState->GetPlayerName()));
+				}
 			}
 		}
-	}
-	else if (InitializationRetryCount < 50)
-	{
-		InitializationRetryCount++;
-		GetWorld()->GetTimerManager().SetTimer(
-			InitializationTimerHandle,
-			this,
-			&UCodeDayVoteTargeting::TryInitializePlayerState,
-			0.1f,
-			false
-		);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("TryInitializePlayerState: Failed to initialize after 50 attempts, giving up"));
+		else if (InitializationRetryCount < 50)
+		{
+			InitializationRetryCount++;
+			GetWorld()->GetTimerManager().SetTimer(
+				InitializationTimerHandle,
+				this,
+				&UCodeDayVoteTargeting::TryInitializePlayerState,
+				0.1f,
+				false
+			);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("TryInitializePlayerState: Failed to initialize after 50 attempts, giving up"));
+		}
 	}
 }

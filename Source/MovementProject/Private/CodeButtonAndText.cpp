@@ -15,13 +15,12 @@ void UCodeButtonAndText::NativeConstruct()
 
 void UCodeButtonAndText::NativeDestruct()
 {
-	if (targetPlayerState)
+	if (TargetPlayerState)
 	{
-		targetPlayerState->OnVotesOnPlayerChanged.RemoveDynamic(this, &UCodeButtonAndText::UpdateVoteCountDisplay);
+		TargetPlayerState->OnVotesOnPlayerChanged.RemoveDynamic(this, &UCodeButtonAndText::UpdateVoteCountDisplay);
 	}
-
-	ACodeGameState* GameState = GetWorld() ? GetWorld()->GetGameState<ACodeGameState>() : nullptr;
-	if (GameState)
+	
+	if (ACodeGameState* GameState = GetWorld() ? GetWorld()->GetGameState<ACodeGameState>() : nullptr)
 	{
 		GameState->OnSkipVoteCountChanged.RemoveDynamic(this, &UCodeButtonAndText::UpdateSkipVoteCountDisplay);
 	}
@@ -30,12 +29,12 @@ void UCodeButtonAndText::NativeDestruct()
 void UCodeButtonAndText::SetupEntry(ACodePlayerState* PlayerReference)
 {
 	PlayerNameButton->SetBackgroundColor(BaseButtonColor);
-	targetPlayerState = PlayerReference;
+	TargetPlayerState = PlayerReference;
 	
-	if (targetPlayerState)
+	if (TargetPlayerState)
 	{
-		targetPlayerState->OnVotesOnPlayerChanged.RemoveDynamic(this, &UCodeButtonAndText::UpdateVoteCountDisplay);
-		targetPlayerState->OnVotesOnPlayerChanged.AddDynamic(this, &UCodeButtonAndText::UpdateVoteCountDisplay);
+		TargetPlayerState->OnVotesOnPlayerChanged.RemoveDynamic(this, &UCodeButtonAndText::UpdateVoteCountDisplay);
+		TargetPlayerState->OnVotesOnPlayerChanged.AddDynamic(this, &UCodeButtonAndText::UpdateVoteCountDisplay);
 	}
 	else
 	{
@@ -48,10 +47,9 @@ void UCodeButtonAndText::SetupEntry(ACodePlayerState* PlayerReference)
 void UCodeButtonAndText::SetupSkipVoteEntry()
 {
 	PlayerNameButton->SetBackgroundColor(BaseButtonColor);
-	targetPlayerState = nullptr;
-
-	ACodeGameState* GameState = GetWorld()->GetGameState<ACodeGameState>();
-	if (GameState)
+	TargetPlayerState = nullptr;
+	
+	if (ACodeGameState* GameState = GetWorld()->GetGameState<ACodeGameState>())
 	{
 		GameState->OnSkipVoteCountChanged.RemoveDynamic(this, &UCodeButtonAndText::UpdateSkipVoteCountDisplay);
 		GameState->OnSkipVoteCountChanged.AddDynamic(this, &UCodeButtonAndText::UpdateSkipVoteCountDisplay);
@@ -66,22 +64,22 @@ void UCodeButtonAndText::OnButtonPressed()
 	PlayerNameButton->SetBackgroundColor(ButtonClickedColor);
 	ACodePlayerState* playerState = Cast<ACodePlayerState>(GetOwningPlayer()->PlayerState);
 
-	if (GetWorld()->GetGameState<ACodeGameState>()->currentPhase == EPhases::Night)
+	if (GetWorld()->GetGameState<ACodeGameState>()->CurrentPhase == EPhases::Night)
 	{
-		if (playerState && targetPlayerState)
+		if (playerState && TargetPlayerState)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("OnButtonPressed NIGHT: Player %s pressed button for target %s"), *playerState->GetPlayerName(), *targetPlayerState->GetPlayerName());
-			playerState->Server_SubmitNightAction(targetPlayerState);
+			UE_LOG(LogTemp, Warning, TEXT("OnButtonPressed NIGHT: Player %s pressed button for target %s"), *playerState->GetPlayerName(), *TargetPlayerState->GetPlayerName());
+			playerState->Server_SubmitNightAction(TargetPlayerState);
 		}
 	}
-	else if (GetWorld()->GetGameState<ACodeGameState>()->currentPhase == EPhases::Voting)
+	else if (GetWorld()->GetGameState<ACodeGameState>()->CurrentPhase == EPhases::Voting)
 	{
-		if (playerState && targetPlayerState)
+		if (playerState && TargetPlayerState)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("OnButtonPressed VOTING: Player %s pressed button for target %s"), *playerState->GetPlayerName(), *targetPlayerState->GetPlayerName());
-			playerState->Server_SubmitVote(targetPlayerState);
+			UE_LOG(LogTemp, Warning, TEXT("OnButtonPressed VOTING: Player %s pressed button for target %s"), *playerState->GetPlayerName(), *TargetPlayerState->GetPlayerName());
+			playerState->Server_SubmitVote(TargetPlayerState);
 		}
-		else if (playerState && targetPlayerState == nullptr && !playerState->bHasSubmittedVote)
+		else if (playerState && TargetPlayerState == nullptr && !playerState->bHasSubmittedVote)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("OnButtonPressed VOTING: Player %s pressed button for SKIP VOTE"), *playerState->GetPlayerName());
 			playerState->Server_SubmitVote(nullptr);
@@ -97,18 +95,18 @@ void UCodeButtonAndText::OnButtonPressed()
 }
 void UCodeButtonAndText::UpdateVoteCountDisplay()
 {
-	if (!targetPlayerState || !PlayerNameText)
+	if (!TargetPlayerState || !PlayerNameText)
 	{
 		return;
 	}
 
-	if (targetPlayerState->votesOnPlayer > 0)
+	if (TargetPlayerState->VotesOnPlayer > 0)
 	{
-		PlayerNameText->SetText(FText::FromString(FString::Printf(TEXT("%s (%d)"), *targetPlayerState->GetPlayerName(), targetPlayerState->votesOnPlayer)));
+		PlayerNameText->SetText(FText::FromString(FString::Printf(TEXT("%s (%d)"), *TargetPlayerState->GetPlayerName(), TargetPlayerState->VotesOnPlayer)));
 	}
 	else
 	{
-		PlayerNameText->SetText(FText::FromString(targetPlayerState->GetPlayerName()));
+		PlayerNameText->SetText(FText::FromString(TargetPlayerState->GetPlayerName()));
 	}
 }
 

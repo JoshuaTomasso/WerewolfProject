@@ -40,25 +40,25 @@ public:
 	TSubclassOf<UCodeNightResult> NightResultWidgetClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
-	TSubclassOf<UCodeRevealeRole> RevealeRoleWidgetClass;
+	TSubclassOf<UCodeRevealeRole> RevealRoleWidgetClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
-	UCodeGamePhaseTimer* gamePhaseTimerWidget;
+	UCodeGamePhaseTimer* GamePhaseTimerWidget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
-	UCodeNightActionTargeting* nightActionWidget;
+	UCodeNightActionTargeting* NightActionWidget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
-	UCodeDayVoteTargeting* dayVoteWidget;
+	UCodeDayVoteTargeting* DayVoteWidget;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
-	UCodeNightResult* nightResultWidget;
+	UCodeNightResult* NightResultWidget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
-	UCodeGameOver* gameOverWidget;
+	UCodeGameOver* GameOverWidget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
-	UCodeRevealeRole* revealeRoleWidget;
+	UCodeRevealeRole* RevealRoleWidget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bools")
 	bool bNightWidgetActive;
@@ -75,10 +75,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Role")
 	class UDataTable* ControllerRoleDataTable;
 
-	void BeginPlay() override;
+protected:
+	virtual void BeginPlay() override;
 
-	void Tick(float DeltaTime) override;
+	virtual void Tick(float DeltaTime) override;
 
+public:
 	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "PlayerController")
 	void Server_NotifyReady();
 

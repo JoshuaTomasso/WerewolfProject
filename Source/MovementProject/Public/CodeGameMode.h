@@ -4,15 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
-
-#include <vector>
-#include <string>
-#include "CodeGameState.h"
 #include "ERoles.h"
 #include "SWerewolfPack.h"
 #include "CodePlayerController.h"
 #include "CodePlayerState.h"
-
 #include "CodeGameMode.generated.h"
 
 
@@ -27,29 +22,29 @@ class MOVEMENTPROJECT_API ACodeGameMode : public AGameModeBase
 public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Vectors")
-	TArray<ERoles> rolePool;
+	TArray<ERoles> RolePool;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Vectors")
-	TArray<ACodePlayerState*> playerStates;
+	TArray<ACodePlayerState*> PlayerStates;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Vectors")
-	TArray<ACodePlayerState*> werewolves;
+	TArray<ACodePlayerState*> Werewolves;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Vectors")
-	TArray<ACodePlayerController*> readyPlayerControllers;
+	TArray<ACodePlayerController*> ReadyPlayerControllers;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Vectors")
-	TArray<ACodePlayerState*> killTargetArray;
+	TArray<ACodePlayerState*> KillTargetArray;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Vectors")
-	TArray<FSWerewolfPack> werewolfPacks;
+	TArray<FSWerewolfPack> WerewolfPacks;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Floats")
-	float nightDuration;
+	float NightDuration;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Floats")
-	float dayDuration;
+	float DayDuration;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Floats")
-	float votingDuration;
+	float VotingDuration;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Floats")
-	float roleRevealDuration;
+	float RoleRevealDuration;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ints")
-	int expectedPlayerCount;
+	int ExpectedPlayerCount;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bools")
 	bool bGameStarted;
@@ -59,36 +54,34 @@ public:
 	bool bBValid = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Other")
-	ACodePlayerState* killTarget;
+	ACodePlayerState* KillTarget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Other")
-	ACodePlayerState* protectionTarget;
+	ACodePlayerState* ProtectionTarget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Other")
-	ACodePlayerState* seererTarget;
+	ACodePlayerState* SeererTarget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Other")
-	FTimerHandle phaseTimerHandle;
+	FTimerHandle PhaseTimerHandle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Other")
-	FText partnerNameText;
+	FText PartnerNameText;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Other")
 	class UDataTable* GameModeRoleDataTable;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WinConditions")
-	int winningTeam = -1;
+	int WinningTeam = -1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WinConditions")
-	int villagerCount = 0;
+	int VillagerCount = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WinConditions")
-	int werewolfCount = 0;
+	int WerewolfCount = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WinConditions")
 	bool bGameOver = false;
-
-	void BeginPlay() override;
 
 	UFUNCTION(BlueprintCallable, Category = "GameMode")
 	void OnPhaseTimerComplete();
@@ -110,5 +103,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "GameMode")
 	void CheckWinConditions();
+
+protected:
+	virtual void BeginPlay() override;
 
 };

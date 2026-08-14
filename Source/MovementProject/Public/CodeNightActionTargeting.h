@@ -49,12 +49,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 	float EntrySpacing = 10.0f;
 
+protected:
 	UFUNCTION()
 	virtual void NativeConstruct() override;
 
 	UFUNCTION()
 	virtual void NativeDestruct() override;
 
+public:
 	UFUNCTION()
 	void PopulateTargetList();
 

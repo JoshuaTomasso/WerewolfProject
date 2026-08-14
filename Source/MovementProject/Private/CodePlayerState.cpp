@@ -9,33 +9,33 @@
 #include "Net/UnrealNetwork.h"
 #include "CodePlayerCharacter.h"
 
-void ACodePlayerState::Client_ReceiveRole_Implementation(ERoles roleToReveal)
+void ACodePlayerState::Client_ReceiveRole_Implementation(ERoles RoleToReveal)
 {
 	APlayerController* LocalPlayerController = GetPlayerController();
 
-	UCodePlayerRoleDiscription* RoleDiscriptionWidget = CreateWidget<UCodePlayerRoleDiscription>(LocalPlayerController, RoleDescriptionWidgetClass);
-	if (RoleDiscriptionWidget)
+	
+	if (UCodePlayerRoleDiscription* RoleDiscriptionWidget = CreateWidget<UCodePlayerRoleDiscription>(LocalPlayerController, RoleDescriptionWidgetClass))
 	{
 		RoleDiscriptionWidget->AddToViewport();
 
 		if (RoleDataTable)
 		{
-			FString RoleNameString = UEnum::GetValueAsString(roleToReveal);
+			FString RoleNameString = UEnum::GetValueAsString(RoleToReveal);
 			RoleNameString.RemoveFromStart(TEXT("ERoles::"));
 
-			FSRoleInfo* RoleInfo = RoleDataTable->FindRow<FSRoleInfo>(*RoleNameString, TEXT("Client_ReceiveRole_Implementation"));
+			
 
-			if (RoleInfo)
+			if (const FSRoleInfo* RoleInfo = RoleDataTable->FindRow<FSRoleInfo>(*RoleNameString, TEXT("Client_ReceiveRole_Implementation")))
 			{
-				RoleDiscriptionWidget->RoleText->SetText(RoleInfo->displayName);
-				RoleDiscriptionWidget->RoleDetails->SetText(RoleInfo->description);
+				RoleDiscriptionWidget->RoleText->SetText(RoleInfo->DisplayName);
+				RoleDiscriptionWidget->RoleDetails->SetText(RoleInfo->Description);
 
-				RoleDiscriptionWidget->RemoveWidgetAfterDelay(duration);
+				RoleDiscriptionWidget->RemoveWidgetAfterDelay(Duration);
 				
 			}
 			else
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Client_ReceiveRole_Implementation: RoleInfo is null for role %s"), *UEnum::GetValueAsString(roleToReveal));
+				UE_LOG(LogTemp, Warning, TEXT("Client_ReceiveRole_Implementation: RoleInfo is null for role %s"), *UEnum::GetValueAsString(RoleToReveal));
 			}
 		}
 		else
@@ -50,66 +50,66 @@ void ACodePlayerState::Client_ReceiveRole_Implementation(ERoles roleToReveal)
 
 }
 
-void ACodePlayerState::Client_ReceiveWerewolfPartner_Implementation(const FText& partnerName)
+void ACodePlayerState::Client_ReceiveWerewolfPartner_Implementation(const FText& PartnerName)
 {
 
 	GetWorld()->GetTimerManager().SetTimer
 	(
 		ShowWidgetTimerHandle,
-		[this, partnerName]()
+		[this, PartnerName]()
 		{
-			OnShowWidgetTimer(partnerName);
+			OnShowWidgetTimer(PartnerName);
 		},
-		duration,
+		Duration,
 		false
 	);
 }
 
-void ACodePlayerState::Server_SubmitNightAction_Implementation(ACodePlayerState* abilityTarget)
+void ACodePlayerState::Server_SubmitNightAction_Implementation(ACodePlayerState* AbilityTarget)
 {
-	ACodeGameState* GameState = Cast<ACodeGameState>(GetWorld()->GetGameState());
-	if (GameState)
+	
+	if (const ACodeGameState* GameState = Cast<ACodeGameState>(GetWorld()->GetGameState()))
 	{
 
-		if (GameState->currentPhase == EPhases::Night && bIsAlive && !bHasSubmittedNightAction && abilityTarget->bIsAlive)
+		if (GameState->CurrentPhase == EPhases::Night && bIsAlive && !bHasSubmittedNightAction && AbilityTarget->bIsAlive)
 		{
 
 			bool bCanVoteFor = true;
 
-			if (this == abilityTarget)
+			if (this == AbilityTarget)
 			{
-				if (currentRole == ERoles::Medic)
+				if (CurrentRole == ERoles::Medic)
 				{
-					if (selfProtectedCount >= 1)
+					if (SelfProtectedCount >= 1)
 					{
-						voteErrorCount++;
+						VoteErrorCount++;
 						OnRep_VoteErrorCount();
 						bCanVoteFor = false;
 					}
-					else if (selfProtectedCount < 1)
+					else if (SelfProtectedCount < 1)
 					{
-						selfProtectedCount++;
+						SelfProtectedCount++;
 					}
 				}
 			}
-			else if (werewolfPartner == abilityTarget)
+			else if (WerewolfPartner == AbilityTarget)
 			{
-				voteErrorCount++;
+				VoteErrorCount++;
 				OnRep_VoteErrorCount();
 				bCanVoteFor = false;
 			}
 
-			if (currentRole == ERoles::Seer)
+			if (CurrentRole == ERoles::Seer)
 			{
-				if (seerAbilityCount >= 1)
+				if (SeerAbilityCount >= 1)
 				{
-					voteErrorCount++;
+					VoteErrorCount++;
 					OnRep_VoteErrorCount();
 					bCanVoteFor = false;
 				}
-				else if (seerAbilityCount < 1)
+				else if (SeerAbilityCount < 1)
 				{
-					seerAbilityCount++;
+					SeerAbilityCount++;
 				}
 			}
 
@@ -119,22 +119,22 @@ void ACodePlayerState::Server_SubmitNightAction_Implementation(ACodePlayerState*
 			{
 				if (RoleDataTable)
 				{
-					FString RoleNameString = UEnum::GetValueAsString(currentRole);
+					FString RoleNameString = UEnum::GetValueAsString(CurrentRole);
 					RoleNameString.RemoveFromStart(TEXT("ERoles::"));
 
-					FSRoleInfo* RoleInfo = RoleDataTable->FindRow<FSRoleInfo>(*RoleNameString, TEXT("Server_SubmitNightAction_Implementation"));
+					
 
-					if (RoleInfo)
+					if (const FSRoleInfo* RoleInfo = RoleDataTable->FindRow<FSRoleInfo>(*RoleNameString, TEXT("Server_SubmitNightAction_Implementation")))
 					{
 						if (RoleInfo->bCanActAtNight)
 						{
-							nightTarget = abilityTarget;
+							NightTarget = AbilityTarget;
 							bHasSubmittedNightAction = true;
 							OnRep_NightTarget();
 						}
 						else
 						{
-							UE_LOG(LogTemp, Warning, TEXT("Server_SubmitNightAction_Implementation: Player %s with role %s cannot act at night"), *GetPlayerName(), *UEnum::GetValueAsString(currentRole));
+							UE_LOG(LogTemp, Warning, TEXT("Server_SubmitNightAction_Implementation: Player %s with role %s cannot act at night"), *GetPlayerName(), *UEnum::GetValueAsString(CurrentRole));
 						}
 					}
 				}
@@ -148,27 +148,26 @@ void ACodePlayerState::Server_SubmitNightAction_Implementation(ACodePlayerState*
 }
 
 
-void ACodePlayerState::Server_SubmitVote_Implementation(ACodePlayerState* abilityTarget)
+void ACodePlayerState::Server_SubmitVote_Implementation(ACodePlayerState* AbilityTarget)
 {
-	ACodeGameState* GameState = Cast<ACodeGameState>(GetWorld()->GetGameState());
-	if (GameState)
+	if (ACodeGameState* GameState = Cast<ACodeGameState>(GetWorld()->GetGameState()))
 	{
-		if (abilityTarget == nullptr)
+		if (AbilityTarget == nullptr)
 		{
-			voteTarget = nullptr;
+			VoteTarget = nullptr;
 			bHasSubmittedVote = true;
 			OnRep_VoteTarget();
 
 			GameState->SkipVoteCount++;
 			GameState->OnRep_SkipVoteCount();
 		}
-		else if (GameState->currentPhase == EPhases::Voting && bIsAlive && abilityTarget->bIsAlive && !bHasSubmittedVote)
+		else if (GameState->CurrentPhase == EPhases::Voting && bIsAlive && AbilityTarget->bIsAlive && !bHasSubmittedVote)
 		{
-			voteTarget = abilityTarget;
+			VoteTarget = AbilityTarget;
 			bHasSubmittedVote = true;
 			OnRep_VoteTarget();
-			abilityTarget->votesOnPlayer++;
-			abilityTarget->OnRep_VotesOnPlayer();
+			AbilityTarget->VotesOnPlayer++;
+			AbilityTarget->OnRep_VotesOnPlayer();
 
 		}
 		else
@@ -178,14 +177,12 @@ void ACodePlayerState::Server_SubmitVote_Implementation(ACodePlayerState* abilit
 	}
 }
 
-void ACodePlayerState::Server_RevealeRole_Implementation()
+void ACodePlayerState::Server_RevealRole_Implementation()
 {
 	bHasRevealedRole = true;
 	OnRep_HasRevealedRole();
-
-	ACodePlayerCharacter* PlayerCharacter = Cast<ACodePlayerCharacter>(GetPawn());
-
-	if (PlayerCharacter)
+	
+	if (ACodePlayerCharacter* PlayerCharacter = Cast<ACodePlayerCharacter>(GetPawn()))
 	{
 		PlayerCharacter->Multicast_SetMayorRevealVisibility(true);
 	}
@@ -234,29 +231,27 @@ void ACodePlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(ACodePlayerState, currentRole);
-	DOREPLIFETIME(ACodePlayerState, voteErrorCount);
-	DOREPLIFETIME(ACodePlayerState, nightTarget);
-	DOREPLIFETIME(ACodePlayerState, werewolfPartner);
+	DOREPLIFETIME(ACodePlayerState, CurrentRole);
+	DOREPLIFETIME(ACodePlayerState, VoteErrorCount);
+	DOREPLIFETIME(ACodePlayerState, NightTarget);
+	DOREPLIFETIME(ACodePlayerState, WerewolfPartner);
 	DOREPLIFETIME(ACodePlayerState, bIsAlive);
 	DOREPLIFETIME(ACodePlayerState, bHasSubmittedNightAction);
 	DOREPLIFETIME(ACodePlayerState, bHasSubmittedVote);
-	DOREPLIFETIME(ACodePlayerState, targetDeadCount);
-	DOREPLIFETIME(ACodePlayerState, votesOnPlayer);
+	DOREPLIFETIME(ACodePlayerState, TargetDeadCount);
+	DOREPLIFETIME(ACodePlayerState, VotesOnPlayer);
 	DOREPLIFETIME(ACodePlayerState, bHasRevealedRole);
 }
 
 void ACodePlayerState::OnShowWidgetTimer(const FText& partnerName)
 {
-	APlayerController* PlayerController = GetPlayerController();
-	if (PlayerController)
+	if (APlayerController* PlayerController = GetPlayerController())
 	{
-		UCodeWerewolfPartnerReveal* WerewolfPartnerRevealWidget = CreateWidget<UCodeWerewolfPartnerReveal>(PlayerController, WerewolfPartnerRevealWidgetClass);
-		if (WerewolfPartnerRevealWidget)
+		if (UCodeWerewolfPartnerReveal* WerewolfPartnerRevealWidget = CreateWidget<UCodeWerewolfPartnerReveal>(PlayerController, WerewolfPartnerRevealWidgetClass))
 		{
 			WerewolfPartnerRevealWidget->AddToViewport();
 			WerewolfPartnerRevealWidget->WerewolfNames->SetText(partnerName);
-			WerewolfPartnerRevealWidget->RemoveWidgetAfterDelay(duration);
+			WerewolfPartnerRevealWidget->RemoveWidgetAfterDelay(Duration);
 		}
 	}
 }

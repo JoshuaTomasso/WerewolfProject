@@ -9,10 +9,9 @@
 
 void ACodeGameState::MulticastSendFinalPlayerList_Implementation()
 {
-	ACodePlayerController* LocalPlayerController = Cast<ACodePlayerController>(GetWorld()->GetFirstPlayerController());
-	if (LocalPlayerController)
+	if (const ACodePlayerController* LocalPlayerController = Cast<ACodePlayerController>(GetWorld()->GetFirstPlayerController()))
 	{
-		LocalPlayerController->nightActionWidget->PopulateTargetList();
+		LocalPlayerController->NightActionWidget->PopulateTargetList();
 	}
 	else
 	{
@@ -20,16 +19,15 @@ void ACodeGameState::MulticastSendFinalPlayerList_Implementation()
 	}
 }
 
-void ACodeGameState::MulticastNotifyWinner_Implementation(int winningTeam)
+void ACodeGameState::MulticastNotifyWinner_Implementation(int WinningTeam)
 {
-	ACodePlayerController* LocalPlayerController = Cast<ACodePlayerController>(GetWorld()->GetFirstPlayerController());
-	if (LocalPlayerController)
+	if (ACodePlayerController* LocalPlayerController = Cast<ACodePlayerController>(GetWorld()->GetFirstPlayerController()))
 	{
-		if (winningTeam == 1)
+		if (WinningTeam == 1)
 		{
 			LocalPlayerController->ShowGameOverWidget(TEXT("Winning Team: Villagers"));
 		}
-		else if (winningTeam == 2)
+		else if (WinningTeam == 2)
 		{
 			LocalPlayerController->ShowGameOverWidget(TEXT("Winning Team: Werewolves"));
 		}
@@ -44,15 +42,15 @@ void ACodeGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(ACodeGameState, currentPhase);
-	DOREPLIFETIME(ACodeGameState, phaseTimeRemaining);
-	DOREPLIFETIME(ACodeGameState, phaseDuration);
-	DOREPLIFETIME(ACodeGameState, phaseEndTime);
+	DOREPLIFETIME(ACodeGameState, CurrentPhase);
+	DOREPLIFETIME(ACodeGameState, PhaseTimeRemaining);
+	DOREPLIFETIME(ACodeGameState, PhaseDuration);
+	DOREPLIFETIME(ACodeGameState, PhaseEndTime);
 	DOREPLIFETIME(ACodeGameState, ExpectedPlayerCount);
 	DOREPLIFETIME(ACodeGameState, SkipVoteCount);
 }
 
-void ACodeGameState::OnRep_SkipVoteCount()
+void ACodeGameState::OnRep_SkipVoteCount() const
 {
 	OnSkipVoteCountChanged.Broadcast();
 }
