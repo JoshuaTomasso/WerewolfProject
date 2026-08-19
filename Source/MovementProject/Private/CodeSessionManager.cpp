@@ -1,6 +1,7 @@
 #include "CodeSessionManager.h"
 #include "OnlineSubsystemUtils.h"
 #include "Kismet/GameplayStatics.h"
+#include "CodeMainMenuPlayerController.h"
 
 IOnlineSessionPtr UCodeSessionManager::GetSessionInterface() const
 {
@@ -21,10 +22,11 @@ void UCodeSessionManager::CreateLobby(const FString LobbyName, const int32 MaxPl
 	}
 
 	PendingMapName = MapName;
+	PendingMaxPlayers = FMath::Max(1, MaxPlayers);
 
 	FOnlineSessionSettings SessionSettings;
 	SessionSettings.bIsLANMatch = true;
-	SessionSettings.NumPublicConnections = MaxPlayers;
+	SessionSettings.NumPublicConnections = PendingMaxPlayers;
 	SessionSettings.bShouldAdvertise = true;
 	SessionSettings.bUsesPresence = true;
 	SessionSettings.bAllowJoinInProgress = true;
@@ -39,7 +41,13 @@ void UCodeSessionManager::HandleCreateSessionComplete(FName SessionName, const b
 {
 	if (bWasSuccessful)
 	{
-		UGameplayStatics::OpenLevel(this, PendingMapName, true, TEXT("listen"));
+		if (ACodeMainMenuPlayerController* PlayerController = Cast<ACodeMainMenuPlayerController>(GetWorld()->GetFirstPlayerController()))
+		{
+			PlayerController->ShowLoadingScreen();
+			
+			const FString TravelOptions = FString::Printf(TEXT("listen?MaxPlayers=%d"), PendingMaxPlayers);
+			UGameplayStatics::OpenLevel(this, PendingMapName, true, TravelOptions);
+		}
 	}
 	else
 	{
@@ -129,8 +137,12 @@ void UCodeSessionManager::HandleJoinSessionComplete(const FName SessionName, con
 		{
 			if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
 			{
-				PC->ClientTravel(ConnectString, TRAVEL_Absolute);
-				bSuccess = true;
+				if (ACodeMainMenuPlayerController* PlayerController = Cast<ACodeMainMenuPlayerController>(GetWorld()->GetFirstPlayerController()))
+				{
+					PlayerController->ShowLoadingScreen();
+					PC->ClientTravel(ConnectString, TRAVEL_Absolute);
+					bSuccess = true;
+				}
 			}
 		}
 	}

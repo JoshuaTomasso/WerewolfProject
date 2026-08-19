@@ -4,6 +4,7 @@
 #include "Containers/List.h"
 #include "SRoleInfo.h"
 #include "CodeGameState.h"
+#include "Kismet/GameplayStatics.h"
 
 void ACodeGameMode::BeginPlay()
 {
@@ -15,6 +16,31 @@ void ACodeGameMode::BeginPlay()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("BeginPlay: CurrentGameState is null"));
 	}
+}
+
+void ACodeGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
+{
+	Super::InitGame(MapName, Options, ErrorMessage);
+	
+	if (UGameplayStatics::HasOption(Options, TEXT("MaxPlayers")))
+	{
+		const int32 OptionPlayerCount = UGameplayStatics::GetIntOption(Options, TEXT("MaxPlayers"), ExpectedPlayerCount);
+		if (OptionPlayerCount > 0)
+		{
+			ExpectedPlayerCount = OptionPlayerCount;
+		}
+	}
+}
+
+ACodeGameMode::ACodeGameMode()
+{
+	WerewolfRatio = 0.25f;
+	MinWerewolves = 1;
+	MinPlayersToStart = 4;
+	
+	SpecialRoleMinPlayers.Add(ERoles::Medic, 4);
+	SpecialRoleMinPlayers.Add(ERoles::Seer, 5);
+	SpecialRoleMinPlayers.Add(ERoles::Mayor, 6);
 }
 
 void ACodeGameMode::OnPhaseTimerComplete()
@@ -66,25 +92,60 @@ void ACodeGameMode::AssignRoles()
 			PlayerStates.Add(CodePlayerState);
 		}
 	}
+	
+	const int32 PlayerCount = PlayerStates.Num();
+	
+	if (PlayerCount < FMath::Max(MinPlayersToStart, MinWerewolves + 1))
+	{
+		UE_LOG(LogTemp, Error, TEXT("AssignRoles: Not enough players (%d) to assign roles."), PlayerCount);
+		return;
+	}
 
 	RolePool.Empty();
+	
+	int32 NumWerewolves = FMath::Max(MinWerewolves, FMath::RoundToInt(PlayerCount * WerewolfRatio));
+	
+	int32 MaxWerewolves = FMath::Max(MinWerewolves, (PlayerCount - 1) / 2);
+	NumWerewolves = FMath::Clamp(NumWerewolves, MinWerewolves, MaxWerewolves);
 
-	RolePool.Add(ERoles::Werewolf);
-	RolePool.Add(ERoles::Werewolf);
-	RolePool.Add(ERoles::Medic);
-	RolePool.Add(ERoles::Seer);
-	RolePool.Add(ERoles::Mayor);
-	RolePool.Add(ERoles::Villager);
-	RolePool.Add(ERoles::Villager);
-	RolePool.Add(ERoles::Villager);
-
-
+	for (int32 i = 0; i < NumWerewolves; i++)
+	{
+		RolePool.Add(ERoles::Werewolf);
+	}
+	
+	int32 RemainingSlots = PlayerCount - RolePool.Num();
+	for (const TPair<ERoles, int32>& SpecialRole : SpecialRoleMinPlayers)
+	{
+		if (RemainingSlots <= 0)
+		{
+			break;
+		}
+		
+		if (PlayerCount >= SpecialRole.Value)
+		{
+			RolePool.Add(SpecialRole.Key);
+			--RemainingSlots;
+		}
+	}
+	
+	while (RolePool.Num() < PlayerCount)
+	{
+		RolePool.Add(ERoles::Villager);
+	}
+	
+	if (RolePool.Num() > PlayerCount)
+	{
+		RolePool.SetNum(PlayerCount);
+	}
+	
 	for (int32 i = RolePool.Num() - 1; i > 0; --i)
 	{
 		const int32 RandomIndex = FMath::RandRange(0, i);
 		RolePool.Swap(i, RandomIndex);
 	}
-
+	
+	Werewolves.Empty();
+	
 	for (int i = 0; i <= PlayerStates.Num() - 1; ++i)
 	{
 		PlayerStates[i]->CurrentRole = RolePool[i];
@@ -94,11 +155,6 @@ void ACodeGameMode::AssignRoles()
 		if (PlayerStates[i]->CurrentRole == ERoles::Werewolf)
 		{
 			Werewolves.Add(PlayerStates[i]);
-			if (Werewolves.Num() == 2)
-			{
-				Werewolves[0]->WerewolfPartner = Werewolves[1];
-				Werewolves[1]->WerewolfPartner = Werewolves[0];
-			}
 		}
 	}
 
@@ -125,25 +181,12 @@ void ACodeGameMode::AssignRoles()
 
 	WerewolfPacks.Empty();
 
-	for (int i = 0; i < Werewolves.Num() - 1; i++)
+	for (int i = 0; i < Werewolves.Num(); i += 2)
 	{
-		if (i % 2 == 0)
-		{
-			if (i + 1 < Werewolves.Num())
-			{
-				FSWerewolfPack NewPack;
-				NewPack.WolfOne = Werewolves[i];
-				NewPack.WolfTwo = Werewolves[i + 1];
-				WerewolfPacks.Add(NewPack);
-			}
-			else
-			{
-				FSWerewolfPack NewPack;
-				NewPack.WolfOne = Werewolves[i];
-				NewPack.WolfTwo = nullptr;
-				WerewolfPacks.Add(NewPack);
-			}
-		}
+		FSWerewolfPack NewPack;
+		NewPack.WolfOne = Werewolves[i];
+		NewPack.WolfTwo = (i + 1 <Werewolves.Num()) ? Werewolves[i + 1] : nullptr;
+		WerewolfPacks.Add(NewPack);
 	}
 
 	for (ACodePlayerState* PlayerState : PlayerStates)
@@ -265,22 +308,32 @@ void ACodeGameMode::NotifyPlayerReady(ACodePlayerController* Controller)
 
 void ACodeGameMode::ResolveNightActions()
 {
-	if (Werewolves[0]->NightTarget && Werewolves[0]->NightTarget->bIsAlive)
+	KillTargetArray.Empty();
+	KillTarget = nullptr;
+
+	for (const ACodePlayerState* Werewolf : Werewolves)
 	{
-		bAValid = true;
-		KillTargetArray.Add(Werewolves[0]->NightTarget);
-	}
-	if (Werewolves[1]->NightTarget && Werewolves[1]->NightTarget->bIsAlive)
-	{
-		bBValid = true;
-		KillTargetArray.Add(Werewolves[1]->NightTarget);
+		if (Werewolf && Werewolf->NightTarget && Werewolf->NightTarget->bIsAlive)
+		{
+			KillTargetArray.Add(Werewolf->NightTarget);
+		}
 	}
 
-	if (bAValid && bBValid)
+	if (KillTargetArray.Num() > 0)
 	{
-		if (Werewolves[0]->NightTarget == Werewolves[1]->NightTarget)
+		bool bAllAgree = true;
+		for (const ACodePlayerState* Target : KillTargetArray)
 		{
-			KillTarget = Werewolves[0]->NightTarget;
+			if (Target != KillTargetArray[0])
+			{
+				bAllAgree = false;
+				break;
+			}
+		}
+
+		if (bAllAgree)
+		{
+			KillTarget = KillTargetArray[0];
 		}
 		else
 		{
@@ -288,18 +341,7 @@ void ACodeGameMode::ResolveNightActions()
 			KillTarget = KillTargetArray[RandomIndex];
 		}
 	}
-	else if (bAValid)
-	{
-		KillTarget = Werewolves[0]->NightTarget;
-	}
-	else if (bBValid)
-	{
-		KillTarget = Werewolves[1]->NightTarget;
-	}
-	else
-	{
-		KillTarget = nullptr;
-	}
+
 	for (ACodePlayerState* PlayerState : PlayerStates)
 	{
 		if (!PlayerState || !PlayerState->NightTarget)
@@ -311,7 +353,6 @@ void ACodeGameMode::ResolveNightActions()
 		TargetRoleNameString.RemoveFromStart(TEXT("ERoles::"));
 
 		const FSRoleInfo* RoleInfo = GameModeRoleDataTable->FindRow<FSRoleInfo>(*TargetRoleNameString, TEXT("PlayerControllerTick"));
-
 
 		if (PlayerState->CurrentRole == ERoles::Medic)
 		{
@@ -339,17 +380,16 @@ void ACodeGameMode::ResolveNightActions()
 					FString RoleTeam = UEnum::GetValueAsString(RoleInfo->Team);
 					RoleTeam.RemoveFromStart(TEXT("ETeams::"));
 					UE_LOG(LogTemp, Warning, TEXT("ResolveNightActions: %s's team is %s."), *SeererTarget->GetPlayerName(), *RoleTeam);
-					
+
 					if (ACodePlayerController* SeerController = Cast<ACodePlayerController>(PlayerState->GetOwner()))
 					{
 						SeerController->Client_SetNightResultText(RoleTeam);
 					}
-
 				}
 			}
 		}
-
 	}
+
 	if (KillTarget && KillTarget->bIsProtected)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ResolveNightActions: %s was protected and survived the night."), *KillTarget->GetPlayerName());

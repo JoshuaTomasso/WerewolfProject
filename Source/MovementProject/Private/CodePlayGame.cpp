@@ -22,6 +22,15 @@ void UCodePlayGame::NativeConstruct()
 	if (RefreshButton)
 		RefreshButton->OnPressed.AddDynamic(this, &UCodePlayGame::OnRefreshButtonPressed);
 	
+	if (PlayerCountSpinBox)
+	{
+		PlayerCountSpinBox->SetMinValue(MinPlayerCount);
+	 	PlayerCountSpinBox->SetMaxValue(MaxPlayerCount);
+		PlayerCountSpinBox->SetMinSliderValue(MinPlayerCount);
+		PlayerCountSpinBox->SetMaxSliderValue(MaxPlayerCount);
+		PlayerCountSpinBox->SetValue(DefaultPlayerCount);
+	}
+	
 	UCodeGameInstance* CodeGameInstance = GetCodeGameInstance();
 	if (CodeGameInstance && CodeGameInstance->SessionManager)
 	{
@@ -53,17 +62,22 @@ void UCodePlayGame::CreateSessionButtonClicked()
 {
 	if (SessionNameTextBox)
 	{
-		
 		FString LobbyName = SessionNameTextBox->GetText().ToString();
-		if (LobbyName.IsEmpty())
+		if (LobbyName.IsEmpty() || LobbyName.Equals(TEXT("SESSION NAME"), ESearchCase::IgnoreCase))
 		{
 			LobbyName = TEXT("Werewolf Lobby");
+		}
+		
+		int32 MaxPlayers = DefaultPlayerCount;
+		if (PlayerCountSpinBox)
+		{
+			MaxPlayers = FMath::Clamp(FMath::RoundToInt(PlayerCountSpinBox->GetValue()), MinPlayerCount, MaxPlayerCount);
 		}
 		
 		UCodeGameInstance* CodeGameInstance = GetCodeGameInstance();
 		if (CodeGameInstance && CodeGameInstance->SessionManager)
 		{
-			CodeGameInstance->SessionManager->CreateLobby(LobbyName, 8, MapToOpen);
+			CodeGameInstance->SessionManager->CreateLobby(LobbyName, MaxPlayers, MapToOpen);
 		}
 		
 	}

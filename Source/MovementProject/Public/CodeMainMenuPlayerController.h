@@ -7,6 +7,7 @@
 #include "CodeMainMenuPlayerController.generated.h"
 
 class UCodeMainMenu;
+class UCodeLoadingScreen;
 
 /**
  * 
@@ -23,7 +24,17 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = "Widgets")
 	TSubclassOf<UCodeMainMenu> MainMenuWidgetClass;
 	
+	UPROPERTY(BlueprintReadWrite, Category = "Widgets")
+	UCodeLoadingScreen*  LoadingScreenWidget;
+	
+	UPROPERTY(BlueprintReadWrite, Category = "Widgets")
+	TSubclassOf<UCodeLoadingScreen> LoadingScreenWidgetClass;
+	
 protected:
 	virtual void BeginPlay() override;
+	
+public:
+	UFUNCTION(BlueprintCallable)
+	void ShowLoadingScreen();
 	
 };

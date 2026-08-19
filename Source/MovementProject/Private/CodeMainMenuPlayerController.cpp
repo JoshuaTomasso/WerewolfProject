@@ -4,6 +4,7 @@
 #include "CodeMainMenuPlayerController.h"
 #include "Blueprint/UserWidget.h"
 #include "CodeMainMenu.h"
+#include "CodeLoadingScreen.h"
 
 void ACodeMainMenuPlayerController::BeginPlay()
 {
@@ -21,5 +22,18 @@ void ACodeMainMenuPlayerController::BeginPlay()
 				SetInputMode(FInputModeGameAndUI());
 			}
 		}
+	}
+}
+
+void ACodeMainMenuPlayerController::ShowLoadingScreen()
+{
+	if (LoadingScreenWidgetClass)
+	{
+		LoadingScreenWidget = CreateWidget<UCodeLoadingScreen>(this, LoadingScreenWidgetClass);
+		if (LoadingScreenWidget)
+		{
+			LoadingScreenWidget->AddToViewport(9999);
+		}
+		
 	}
 }

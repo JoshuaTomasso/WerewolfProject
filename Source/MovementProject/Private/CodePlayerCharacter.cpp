@@ -16,7 +16,7 @@ void ACodePlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
-    if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
+    if (const APlayerController* PlayerController = Cast<APlayerController>(Controller))
     {
         if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
         {

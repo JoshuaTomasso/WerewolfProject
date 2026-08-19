@@ -7,6 +7,7 @@
 #include "Components/ScrollBox.h"
 #include "Components/Button.h"
 #include "Components/EditableTextBox.h"
+#include "Components/SpinBox.h"
 #include "CodePlayGame.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayGameClosed);
@@ -25,6 +26,9 @@ public:
 	UEditableTextBox* SessionNameTextBox;
 	
 	UPROPERTY(meta = (BindWidget))
+	USpinBox* PlayerCountSpinBox;
+	
+	UPROPERTY(meta = (BindWidget))
 	UButton* CloseWidgetButton;
 	
 	UPROPERTY(meta = (BindWidget))
@@ -38,6 +42,15 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Session")
 	FName MapToOpen = FName("CodeTestMap");
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Session")
+	int32 MinPlayerCount = 4;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Session")
+	int32 MaxPlayerCount = 16;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Session")
+	int32 DefaultPlayerCount = 8;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 	TSubclassOf<class UCodeLobbyEntry> LobbyEntryWidgetClass;
