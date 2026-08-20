@@ -13,6 +13,7 @@ class UCodeDayVoteTargeting;
 class UCodeGameOver;
 class UCodeNightResult;
 class UCodeRevealeRole;
+class UCodeBlackoutBackground;
 
 /**
  *
@@ -41,6 +42,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
 	TSubclassOf<UCodeRevealeRole> RevealRoleWidgetClass;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
+	TSubclassOf<UCodeBlackoutBackground> BlackoutBackgroundWidgetClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
 	UCodeGamePhaseTimer* GamePhaseTimerWidget;
@@ -59,6 +63,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
 	UCodeRevealeRole* RevealRoleWidget;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
+	UCodeBlackoutBackground* BlackoutBackgroundWidget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bools")
 	bool bNightWidgetActive;

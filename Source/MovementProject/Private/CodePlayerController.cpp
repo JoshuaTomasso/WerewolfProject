@@ -12,6 +12,7 @@
 #include "CodeGameOver.h"
 #include "CodeNightResult.h"
 #include "CodeRevealeRole.h"
+#include "CodeBlackoutBackground.h"
 
 void ACodePlayerController::BeginPlay()
 {
@@ -24,7 +25,7 @@ void ACodePlayerController::BeginPlay()
 			GamePhaseTimerWidget = CreateWidget<UCodeGamePhaseTimer>(this, GamePhaseTimerWidgetClass);
 			if (GamePhaseTimerWidget)
 			{
-				GamePhaseTimerWidget->AddToViewport();
+				GamePhaseTimerWidget->AddToViewport(998);
 			}
 		}
 		if (NightActionWidgetClass)
@@ -32,7 +33,7 @@ void ACodePlayerController::BeginPlay()
 			NightActionWidget = CreateWidget<UCodeNightActionTargeting>(this, NightActionWidgetClass);
 			if (NightActionWidget)
 			{
-				NightActionWidget->AddToViewport();
+				NightActionWidget->AddToViewport(50);
 				NightActionWidget->SetVisibility(ESlateVisibility::Collapsed);
 			}
 			else
@@ -45,7 +46,7 @@ void ACodePlayerController::BeginPlay()
 			DayVoteWidget = CreateWidget<UCodeDayVoteTargeting>(this, DayVoteWidgetClass);
 			if (DayVoteWidget)
 			{
-				DayVoteWidget->AddToViewport();
+				DayVoteWidget->AddToViewport(50);
 				DayVoteWidget->SetVisibility(ESlateVisibility::Collapsed);
 			}
 			else
@@ -58,7 +59,7 @@ void ACodePlayerController::BeginPlay()
 			GameOverWidget = CreateWidget<UCodeGameOver>(this, GameOverWidgetClass);
 			if (GameOverWidget)
 			{
-				GameOverWidget->AddToViewport();
+				GameOverWidget->AddToViewport(999);
 				GameOverWidget->SetVisibility(ESlateVisibility::Collapsed);
 			}
 			else
@@ -71,7 +72,7 @@ void ACodePlayerController::BeginPlay()
 			NightResultWidget = CreateWidget<UCodeNightResult>(this, NightResultWidgetClass);
 			if (NightResultWidget)
 			{
-				NightResultWidget->AddToViewport();
+				NightResultWidget->AddToViewport(50);
 				NightResultWidget->SetVisibility(ESlateVisibility::Collapsed);
 			}
 			else
@@ -84,12 +85,21 @@ void ACodePlayerController::BeginPlay()
 			RevealRoleWidget = CreateWidget<UCodeRevealeRole>(this, RevealRoleWidgetClass);
 			if (RevealRoleWidget)
 			{
-				RevealRoleWidget->AddToViewport();
+				RevealRoleWidget->AddToViewport(50);
 				RevealRoleWidget->SetVisibility(ESlateVisibility::Collapsed);
 			}
 			else
 			{
 				UE_LOG(LogTemp, Warning, TEXT("BeginPlay: revealeRoleWidget is null"));
+			}
+		}
+		if (BlackoutBackgroundWidgetClass)
+		{
+			BlackoutBackgroundWidget = CreateWidget<UCodeBlackoutBackground>(this, BlackoutBackgroundWidgetClass);
+			if (BlackoutBackgroundWidget)
+			{
+				BlackoutBackgroundWidget->AddToViewport(-1);
+				BlackoutBackgroundWidget->SetVisibility(ESlateVisibility::Collapsed);
 			}
 		}
 	}
@@ -122,6 +132,7 @@ void ACodePlayerController::Tick(const float DeltaTime)
 				{
 					DayVoteWidget->SetVisibility(ESlateVisibility::Collapsed);
 					NightResultWidget->SetVisibility(ESlateVisibility::Collapsed);
+					BlackoutBackgroundWidget->SetVisibility(ESlateVisibility::Collapsed);
 				}
 				else
 				{
@@ -164,6 +175,7 @@ void ACodePlayerController::Tick(const float DeltaTime)
 						NightActionWidget->SetVisibility(ESlateVisibility::Collapsed);
 						NightResultWidget->SetVisibility(ESlateVisibility::Collapsed);
 						RevealRoleWidget->SetVisibility(ESlateVisibility::Collapsed);
+						BlackoutBackgroundWidget->SetVisibility(ESlateVisibility::Collapsed);
 						DayVoteWidget->SetVisibility(ESlateVisibility::Visible);
 					}
 					else
@@ -181,6 +193,7 @@ void ACodePlayerController::Tick(const float DeltaTime)
 					{
 						DayVoteWidget->SetVisibility(ESlateVisibility::Collapsed);
 						NightActionWidget->SetVisibility(ESlateVisibility::Collapsed);
+						BlackoutBackgroundWidget->SetVisibility(ESlateVisibility::Collapsed);
 						NightResultWidget->SetVisibility(ESlateVisibility::Visible);
 						if (CodePlayerState->CurrentRole == ERoles::Mayor && !CodePlayerState->bHasRevealedRole)
 						{
@@ -191,9 +204,14 @@ void ACodePlayerController::Tick(const float DeltaTime)
 					{
 						NightResultWidget->SetVisibility(ESlateVisibility::Collapsed);
 						RevealRoleWidget->SetVisibility(ESlateVisibility::Collapsed);
+						BlackoutBackgroundWidget->SetVisibility(ESlateVisibility::Collapsed);
 					}
 
 				}
+			}
+			else if (GameState->CurrentPhase == EPhases::RoleReveal && bHasAckedReady)
+			{
+				BlackoutBackgroundWidget->SetVisibility(ESlateVisibility::Visible);
 			}
 
 			if (GameState->CurrentPhase == EPhases::Night && !bNightTargetListPopulated)

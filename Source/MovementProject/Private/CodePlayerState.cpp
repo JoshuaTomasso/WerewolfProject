@@ -14,9 +14,9 @@ void ACodePlayerState::Client_ReceiveRole_Implementation(ERoles RoleToReveal)
 	APlayerController* LocalPlayerController = GetPlayerController();
 
 	
-	if (UCodePlayerRoleDiscription* RoleDiscriptionWidget = CreateWidget<UCodePlayerRoleDiscription>(LocalPlayerController, RoleDescriptionWidgetClass))
+	if (UCodePlayerRoleDiscription* RoleDescriptionWidget = CreateWidget<UCodePlayerRoleDiscription>(LocalPlayerController, RoleDescriptionWidgetClass))
 	{
-		RoleDiscriptionWidget->AddToViewport();
+		RoleDescriptionWidget->AddToViewport();
 
 		if (RoleDataTable)
 		{
@@ -27,10 +27,10 @@ void ACodePlayerState::Client_ReceiveRole_Implementation(ERoles RoleToReveal)
 
 			if (const FSRoleInfo* RoleInfo = RoleDataTable->FindRow<FSRoleInfo>(*RoleNameString, TEXT("Client_ReceiveRole_Implementation")))
 			{
-				RoleDiscriptionWidget->RoleText->SetText(RoleInfo->DisplayName);
-				RoleDiscriptionWidget->RoleDetails->SetText(RoleInfo->Description);
+				RoleDescriptionWidget->RoleText->SetText(RoleInfo->DisplayName);
+				RoleDescriptionWidget->RoleDetails->SetText(RoleInfo->Description);
 
-				RoleDiscriptionWidget->RemoveWidgetAfterDelay(Duration);
+				RoleDescriptionWidget->RemoveWidgetAfterDelay(Duration);
 				
 			}
 			else

@@ -20,6 +20,7 @@ class MOVEMENTPROJECT_API ACodeGameMode : public AGameModeBase
 	GENERATED_BODY()
 
 public:
+	ACodeGameMode();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Vectors")
 	TArray<ERoles> RolePool;
@@ -48,6 +49,19 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bools")
 	bool bGameStarted;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RoleSetup")
+	float WerewolfRatio = 0.25f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RoleSetup")
+	int32 MinWerewolves = 1;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RoleSetup")
+	int32 MinPlayersToStart = 4;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RoleSetup")
+	TMap<ERoles, int32> SpecialRoleMinPlayers;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bools")
 	bool bAValid = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bools")
@@ -106,5 +120,6 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
 
 };

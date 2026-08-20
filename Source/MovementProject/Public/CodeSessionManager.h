@@ -39,6 +39,7 @@ public:
 private:
 	TSharedPtr<FOnlineSessionSearch> SessionSearch;
 	FName PendingMapName;
+	int32 PendingMaxPlayers = 8;
 	bool bSearchInProgress = false;
 	
 	void HandleCreateSessionComplete(FName SessionName, bool bWasSuccessful) const;
