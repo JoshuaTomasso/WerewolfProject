@@ -1,6 +1,10 @@
 # Visual Studio 2015 user specific files
 .vs/
 
+# JetBrains Rider user specific files
+.idea/
+Plugins/Developer/RiderLink/
+
 # Compiled Object files
 *.slo
 *.lo
@@ -51,12 +55,10 @@ Plugins/**/Binaries/*
 
 # Builds
 Build/*
-
 # Whitelist PakBlacklist-<BuildConfiguration>.txt files
 !Build/*/
 Build/*/**
 !Build/*/PakBlacklist*.txt
-
 # Don't ignore icon files in Build
 !Build/**/*.ico
 

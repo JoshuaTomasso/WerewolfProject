@@ -11,7 +11,7 @@ void UCodeGamePhaseTimer::NativeTick(const FGeometry& MyGeometry, float InDeltaT
 	if (ACodeGameState* GameState = GetWorld()->GetGameState<ACodeGameState>())
 	{
 		
-		if (const UEnum* EnumPtr = FindObject<UEnum>(ANY_PACKAGE, TEXT("EPhases")))
+		if (const UEnum* EnumPtr = StaticEnum<EPhases>())
 		{
 			GamePhaseText->SetText(EnumPtr->GetDisplayNameTextByValue(static_cast<int64>(GameState->CurrentPhase)));
 		}
