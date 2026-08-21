@@ -227,6 +227,11 @@ void ACodePlayerState::OnRep_HasRevealedRole()
 	OnHasRevealedRoleChanged.Broadcast();
 }
 
+void ACodePlayerState::OnRep_WerewolfPartner()
+{
+	OnWerewolfPartnerChanged.Broadcast();
+}
+
 void ACodePlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);

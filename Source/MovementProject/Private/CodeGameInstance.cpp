@@ -8,11 +8,6 @@
 void UCodeGameInstance::Init()
 {
 	Super::Init();
-
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green, TEXT("LOW SPEC SETTINGS APPLIED!"));
-	}
 	
 	if (UGameUserSettings* UserSettings = GEngine->GetGameUserSettings()) 
 	{

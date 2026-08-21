@@ -17,6 +17,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTargetDeadChanged);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnVoteTargetChanged);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnVotesOnPlayerChanged);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHasRevealedRoleChanged);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWerewolfPartnerChanged);
 
 /**
  * 
@@ -55,7 +56,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player States")
 	ACodePlayerState* PlayerVote;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player States", Replicated)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player States", Replicated, ReplicatedUsing = OnRep_WerewolfPartner)
 	ACodePlayerState* WerewolfPartner;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bools", Replicated)
@@ -109,6 +110,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Role Revealed")
 	FOnHasRevealedRoleChanged OnHasRevealedRoleChanged;
 
+	UPROPERTY(BlueprintAssignable, Category = "Werewolf Partner")
+	FOnWerewolfPartnerChanged OnWerewolfPartnerChanged;
+
 	UFUNCTION(Client, Unreliable, BlueprintCallable, Category = "GameState")
 	void Client_ReceiveRole(ERoles RoleToReveal);
 
@@ -144,6 +148,9 @@ public:
 
 	UFUNCTION()
 	void OnRep_HasRevealedRole();
+
+	UFUNCTION()
+	void OnRep_WerewolfPartner();
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 

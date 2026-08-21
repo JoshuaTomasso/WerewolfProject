@@ -37,6 +37,7 @@ void UCodeNightActionTargeting::NativeDestruct()
 	{
 		CastedPlayer->OnRoleAssigned.RemoveDynamic(this, &UCodeNightActionTargeting::OnRoleAssignedHandler);
 		CastedPlayer->OnErrorCountChanged.RemoveDynamic(this, &UCodeNightActionTargeting::ShowVoteNotification);
+		CastedPlayer->OnWerewolfPartnerChanged.RemoveDynamic(this, &UCodeNightActionTargeting::UpdatePartnerDisplay);
 	}
 
 	if (PartnersTarget)
@@ -111,24 +112,42 @@ void UCodeNightActionTargeting::UpdatePartnerVoteDisplay()
 
 void UCodeNightActionTargeting::OnRoleAssignedHandler()
 {
-	if (CastedPlayer->CurrentRole == ERoles::Werewolf)
-	{
-		PartnerChoiceText->SetVisibility(ESlateVisibility::Visible);
-		ChosenPlayerName->SetVisibility(ESlateVisibility::Visible);
+	UpdatePartnerDisplay();
+}
 
-		if (CastedPlayer->WerewolfPartner)
-		{
-			PartnersTarget = CastedPlayer->WerewolfPartner;
-			CastedPlayer->WerewolfPartner->OnNightTargetChanged.RemoveDynamic(this, &UCodeNightActionTargeting::UpdatePartnerVoteDisplay);
-			CastedPlayer->WerewolfPartner->OnNightTargetChanged.AddDynamic(this, &UCodeNightActionTargeting::UpdatePartnerVoteDisplay);
-			UpdatePartnerVoteDisplay();
-		}
-	}
-	else
+void UCodeNightActionTargeting::UpdatePartnerDisplay()
+{
+	if (!CastedPlayer)
 	{
-		PartnerChoiceText->SetVisibility(ESlateVisibility::Collapsed);
-		ChosenPlayerName->SetVisibility(ESlateVisibility::Collapsed);
+		return;
 	}
+
+	const bool bHasPartner = CastedPlayer->CurrentRole == ERoles::Werewolf && IsValid(CastedPlayer->WerewolfPartner);
+
+	if (PartnerChoiceText)
+	{
+		PartnerChoiceText->SetVisibility(bHasPartner ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+	}
+
+	if (ChosenPlayerName)
+	{
+		ChosenPlayerName->SetVisibility(bHasPartner ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+	}
+
+	if (PartnersTarget && PartnersTarget != CastedPlayer->WerewolfPartner)
+	{
+		PartnersTarget->OnNightTargetChanged.RemoveDynamic(this, &UCodeNightActionTargeting::UpdatePartnerVoteDisplay);
+		PartnersTarget = nullptr;
+	}
+
+	if (bHasPartner)
+	{
+		PartnersTarget = CastedPlayer->WerewolfPartner;
+		PartnersTarget->OnNightTargetChanged.RemoveDynamic(this, &UCodeNightActionTargeting::UpdatePartnerVoteDisplay);
+		PartnersTarget->OnNightTargetChanged.AddDynamic(this, &UCodeNightActionTargeting::UpdatePartnerVoteDisplay);
+		UpdatePartnerVoteDisplay();
+	}
+
 	PopulateTargetList();
 }
 
@@ -184,6 +203,8 @@ void UCodeNightActionTargeting::TryInitializePlayerState()
 
 			PlayerState->OnRoleAssigned.RemoveDynamic(this, &UCodeNightActionTargeting::OnRoleAssignedHandler);
 			PlayerState->OnRoleAssigned.AddDynamic(this, &UCodeNightActionTargeting::OnRoleAssignedHandler);
+			PlayerState->OnWerewolfPartnerChanged.RemoveDynamic(this, &UCodeNightActionTargeting::UpdatePartnerDisplay);
+			PlayerState->OnWerewolfPartnerChanged.AddDynamic(this, &UCodeNightActionTargeting::UpdatePartnerDisplay);
 
 			OnRoleAssignedHandler();
 
@@ -227,6 +248,8 @@ void UCodeNightActionTargeting::InitializePlayerState()
 
 		PlayerState->OnRoleAssigned.RemoveDynamic(this, &UCodeNightActionTargeting::OnRoleAssignedHandler);
 		PlayerState->OnRoleAssigned.AddDynamic(this, &UCodeNightActionTargeting::OnRoleAssignedHandler);
+		PlayerState->OnWerewolfPartnerChanged.RemoveDynamic(this, &UCodeNightActionTargeting::UpdatePartnerDisplay);
+		PlayerState->OnWerewolfPartnerChanged.AddDynamic(this, &UCodeNightActionTargeting::UpdatePartnerDisplay);
 
 		OnRoleAssignedHandler();
 

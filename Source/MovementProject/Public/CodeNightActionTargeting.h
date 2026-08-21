@@ -64,6 +64,9 @@ public:
 	void UpdatePartnerVoteDisplay();
 
 	UFUNCTION()
+	void UpdatePartnerDisplay();
+
+	UFUNCTION()
 	void OnRoleAssignedHandler();
 
 	UFUNCTION()

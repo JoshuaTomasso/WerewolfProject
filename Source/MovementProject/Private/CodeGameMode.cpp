@@ -176,16 +176,38 @@ void ACodeGameMode::AssignRoles()
 				}
 			}
 		}
-		PlayerState->Client_ReceiveWerewolfPartner(PartnerNameText);
+		if (!PartnerNameText.IsEmpty())
+		{
+			PlayerState->Client_ReceiveWerewolfPartner(PartnerNameText);
+		}
 	}
 
 	WerewolfPacks.Empty();
+	for (ACodePlayerState* PlayerState : PlayerStates)
+	{
+		if (PlayerState)
+		{
+			PlayerState->WerewolfPartner = nullptr;
+		}
+	}
 
 	for (int i = 0; i < Werewolves.Num(); i += 2)
 	{
 		FSWerewolfPack NewPack;
 		NewPack.WolfOne = Werewolves[i];
 		NewPack.WolfTwo = (i + 1 <Werewolves.Num()) ? Werewolves[i + 1] : nullptr;
+
+		ACodePlayerState* WolfOnePlayerState = Cast<ACodePlayerState>(NewPack.WolfOne);
+		ACodePlayerState* WolfTwoPlayerState = Cast<ACodePlayerState>(NewPack.WolfTwo);
+
+		if (WolfOnePlayerState && WolfTwoPlayerState)
+		{
+			WolfOnePlayerState->WerewolfPartner = WolfTwoPlayerState;
+			WolfTwoPlayerState->WerewolfPartner = WolfOnePlayerState;
+			WolfOnePlayerState->OnRep_WerewolfPartner();
+			WolfTwoPlayerState->OnRep_WerewolfPartner();
+		}
+
 		WerewolfPacks.Add(NewPack);
 	}
 
