@@ -525,7 +525,7 @@ void ACodeGameMode::CheckWinConditions()
 		WinningTeam = 1; // Villagers win
 		bGameOver = true;
 	}
-	else if (VillagerCount < WerewolfCount)
+	else if (VillagerCount <= WerewolfCount)
 	{
 		WinningTeam = 2; // Werewolves win
 		bGameOver = true;
