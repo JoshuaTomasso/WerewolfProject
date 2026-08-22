@@ -40,6 +40,9 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	UScrollBox* SessionsScrollBox;
 	
+	UPROPERTY(meta = (BindWidget))
+	UEditableTextBox* PlayerNameTextBox;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Session")
 	FName MapToOpen = FName("CodeTestMap");
 	
@@ -76,6 +79,9 @@ public:
 	
 	UFUNCTION()
 	void OnRefreshButtonPressed();
+	
+	UFUNCTION()
+	void OnPlayerNameCommitted(const FText& NewText, ETextCommit::Type CommitMethod);
 	
 private:
 	

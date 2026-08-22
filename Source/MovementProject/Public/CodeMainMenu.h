@@ -4,11 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "Components/CanvasPanel.h"
-#include "Components/Button.h"
+#include "Components/WidgetSwitcher.h"
+#include "CodeMainMenuPanelOrder.h"
 #include "CodeMainMenu.generated.h"
-
-class UCodePlayGame;
 
 /**
  * 
@@ -19,40 +17,15 @@ class MOVEMENTPROJECT_API UCodeMainMenu : public UUserWidget
 	GENERATED_BODY()
 	
 public:
-	
 	UPROPERTY(meta = (BindWidget))
-	UCanvasPanel* MainMenuHolder;
+	UWidgetSwitcher* MainMenuWidgetSwitcher;
 	
-	UPROPERTY(meta = (BindWidget))
-	UButton* PlayGameButton;
-	
-	UPROPERTY(meta = (BindWidget))
-	UButton* SettingButton;
-	
-	UPROPERTY(meta = (BindWidget))
-	UButton* QuitButton;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
-	TSubclassOf<UCodePlayGame> CodePlayGameClass;
-	
-	UPROPERTY()
-	UCodePlayGame* PlayGameWidget;
+	UFUNCTION(BlueprintCallable, Category = "Menu")
+	void ShowPanel(ECodeMainMenuPanelOrder PanelOrder);
 	
 protected:
 	virtual void NativeConstruct() override;
 	
-public:
-	
-	UFUNCTION()
-	void PlayGameButtonClicked();
-	
-	UFUNCTION()
-	void SettingsButtonClicked();
-	
-	UFUNCTION()
-	void QuitButtonClicked();
 
-	UFUNCTION()
-	void ShowMainMenuButtons();
 	
 };

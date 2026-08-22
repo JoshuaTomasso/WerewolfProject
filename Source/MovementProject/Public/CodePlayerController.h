@@ -97,4 +97,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "PlayerController")
 	void ShowGameOverWidget(FString WinningFaction);
 
+	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "PlayerController")
+	void Server_SetPlayerName(const FString& NewName);
+	
 };

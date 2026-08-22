@@ -34,6 +34,12 @@ void UCodePlayGame::NativeConstruct()
 	UCodeGameInstance* CodeGameInstance = GetCodeGameInstance();
 	if (CodeGameInstance && CodeGameInstance->SessionManager)
 	{
+		if (PlayerNameTextBox)
+		{
+			PlayerNameTextBox->SetText(FText::FromString(CodeGameInstance->SessionManager->GetLocalPlayerName()));
+			PlayerNameTextBox->OnTextCommitted.AddDynamic(this, &UCodePlayGame::OnPlayerNameCommitted);
+		}
+		
 		CodeGameInstance->SessionManager->OnSessionSearchCompleteEvent.RemoveDynamic(this, &UCodePlayGame::RefreshLobbyList);
 		CodeGameInstance->SessionManager->OnSessionSearchCompleteEvent.AddDynamic(this, &UCodePlayGame::RefreshLobbyList);
 		
@@ -55,31 +61,37 @@ void UCodePlayGame::NativeDestruct()
 void UCodePlayGame::CloseButtonClicked()
 {
 	OnPlayGameClosed.Broadcast();
-	RemoveFromParent();
+
+	if (UCodeMainMenu* ParentMenu = GetTypedOuter<UCodeMainMenu>())
+	{
+		ParentMenu->ShowPanel(ECodeMainMenuPanelOrder::MainButtons);
+	}
 }
 
 void UCodePlayGame::CreateSessionButtonClicked()
 {
-	if (SessionNameTextBox)
+	UCodeGameInstance* CodeGameInstance = GetCodeGameInstance();
+	if (CodeGameInstance && CodeGameInstance->SessionManager)
 	{
-		FString LobbyName = SessionNameTextBox->GetText().ToString();
+		// Catch the case where the player typed a name but never lost focus / committed
+		if (PlayerNameTextBox)
+		{
+			CodeGameInstance->SessionManager->SetLocalPlayerName(PlayerNameTextBox->GetText().ToString());
+		}
+
+		FString LobbyName = SessionNameTextBox ? SessionNameTextBox->GetText().ToString() : FString();
 		if (LobbyName.IsEmpty() || LobbyName.Equals(TEXT("SESSION NAME"), ESearchCase::IgnoreCase))
 		{
 			LobbyName = TEXT("Werewolf Lobby");
 		}
-		
+
 		int32 MaxPlayers = DefaultPlayerCount;
 		if (PlayerCountSpinBox)
 		{
 			MaxPlayers = FMath::Clamp(FMath::RoundToInt(PlayerCountSpinBox->GetValue()), MinPlayerCount, MaxPlayerCount);
 		}
-		
-		UCodeGameInstance* CodeGameInstance = GetCodeGameInstance();
-		if (CodeGameInstance && CodeGameInstance->SessionManager)
-		{
-			CodeGameInstance->SessionManager->CreateLobby(LobbyName, MaxPlayers, MapToOpen);
-		}
-		
+
+		CodeGameInstance->SessionManager->CreateLobby(LobbyName, MaxPlayers, MapToOpen);
 	}
 }
 
@@ -115,6 +127,21 @@ void UCodePlayGame::OnRefreshButtonPressed()
 	{
 		CodeGameInstance->SessionManager->FindLobbies();
 		RefreshLobbyList();
+	}
+}
+
+void UCodePlayGame::OnPlayerNameCommitted(const FText& NewText, ETextCommit::Type CommitMethod)
+{
+	UCodeGameInstance* CodeGameInstance = GetCodeGameInstance();
+	
+	if (CodeGameInstance && CodeGameInstance->SessionManager)
+	{
+		CodeGameInstance->SessionManager->SetLocalPlayerName(NewText.ToString());
+		
+		if (PlayerNameTextBox)
+		{
+			PlayerNameTextBox->SetText(FText::FromString(CodeGameInstance->SessionManager->GetLocalPlayerName()));
+		}
 	}
 }
 

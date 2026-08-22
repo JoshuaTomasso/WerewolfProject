@@ -24,6 +24,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Session")
 	void JoinLobby(int32 SearchResultIndex);
 
+	UFUNCTION(BlueprintCallable, Category = "Session")
+	void SetLocalPlayerName(const FString& NewName);
+	
+	UFUNCTION(BlueprintCallable, Category = "Session")
+	FString GetLocalPlayerName();
+	
 	UPROPERTY(BlueprintAssignable, Category = "Session")
 	FOnLobbyCreateComplete OnCreateSessionCompleteEvent;
 
@@ -41,10 +47,18 @@ private:
 	FName PendingMapName;
 	int32 PendingMaxPlayers = 8;
 	bool bSearchInProgress = false;
+	FString LocalPlayerName;
+	static const FString SaveSlotName;
 	
 	void HandleCreateSessionComplete(FName SessionName, bool bWasSuccessful) const;
 	void HandleFindSessionsComplete(bool bWasSuccessful);
 	void HandleJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result) const;
-
+	
+	void LoadPlayerName();
+	void SavePlayerName() const;
+	static FString GenerateDefaultName();
+	static FString SanitizeNameForURL(const FString& InName);
+	
+	
 	IOnlineSessionPtr GetSessionInterface() const;
 };

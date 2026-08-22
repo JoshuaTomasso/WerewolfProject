@@ -2,6 +2,9 @@
 #include "OnlineSubsystemUtils.h"
 #include "Kismet/GameplayStatics.h"
 #include "CodeMainMenuPlayerController.h"
+#include "CodePlayerSaveGame.h"
+
+const FString UCodeSessionManager::SaveSlotName = TEXT("CodePlayerSave");
 
 IOnlineSessionPtr UCodeSessionManager::GetSessionInterface() const
 {
@@ -45,7 +48,7 @@ void UCodeSessionManager::HandleCreateSessionComplete(FName SessionName, const b
 		{
 			PlayerController->ShowLoadingScreen();
 			
-			const FString TravelOptions = FString::Printf(TEXT("listen?MaxPlayers=%d"), PendingMaxPlayers);
+			const FString TravelOptions = FString::Printf(TEXT("listen?MaxPlayers=%d?Name=%s"), PendingMaxPlayers, *LocalPlayerName);
 			UGameplayStatics::OpenLevel(this, PendingMapName, true, TravelOptions);
 		}
 	}
@@ -125,6 +128,28 @@ void UCodeSessionManager::JoinLobby(const int32 SearchResultIndex)
 	SessionInterface->JoinSession(0, FName("WerewolfLobby"), SessionSearch->SearchResults[SearchResultIndex]);
 }
 
+void UCodeSessionManager::SetLocalPlayerName(const FString& NewName)
+{
+	FString Trimmed = NewName.TrimStartAndEnd();
+	
+	if (Trimmed.IsEmpty())
+	{
+		Trimmed = GenerateDefaultName();
+	}
+	
+	LocalPlayerName = SanitizeNameForURL(Trimmed);
+	SavePlayerName();
+}
+
+FString UCodeSessionManager::GetLocalPlayerName()
+{
+	if (LocalPlayerName.IsEmpty())
+	{
+		LoadPlayerName();
+	}
+	return LocalPlayerName;
+}
+
 void UCodeSessionManager::HandleJoinSessionComplete(const FName SessionName, const EOnJoinSessionCompleteResult::Type Result) const
 {
 	bool bSuccess = false;
@@ -135,6 +160,7 @@ void UCodeSessionManager::HandleJoinSessionComplete(const FName SessionName, con
 		FString ConnectString;
 		if (SessionInterface.IsValid() && SessionInterface->GetResolvedConnectString(SessionName, ConnectString))
 		{
+			ConnectString += FString::Printf(TEXT("?Name=%s"), *LocalPlayerName);
 			if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
 			{
 				if (ACodeMainMenuPlayerController* PlayerController = Cast<ACodeMainMenuPlayerController>(GetWorld()->GetFirstPlayerController()))
@@ -152,4 +178,38 @@ void UCodeSessionManager::HandleJoinSessionComplete(const FName SessionName, con
 	}
 
 	OnJoinSessionCompleteEvent.Broadcast(bSuccess);
+}
+
+void UCodeSessionManager::LoadPlayerName()
+{
+	if (const UCodePlayerSaveGame* LoadedGame = Cast<UCodePlayerSaveGame>(UGameplayStatics::LoadGameFromSlot(SaveSlotName, 0)))
+	{
+		LocalPlayerName = LoadedGame->PlayerName;
+	}
+	
+	if (LocalPlayerName.IsEmpty())
+	{
+		LocalPlayerName = GenerateDefaultName();
+	}
+}
+
+void UCodeSessionManager::SavePlayerName() const
+{
+	if (UCodePlayerSaveGame* SaveGameInstance = Cast<UCodePlayerSaveGame>(UGameplayStatics::CreateSaveGameObject(UCodePlayerSaveGame::StaticClass())))
+	{
+		SaveGameInstance->PlayerName = LocalPlayerName;
+		UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveSlotName, 0);
+	}
+}
+
+FString UCodeSessionManager::GenerateDefaultName()
+{
+	return FString::Printf(TEXT("Player%d"), FMath::RandRange(1000, 9999));
+}
+
+FString UCodeSessionManager::SanitizeNameForURL(const FString& InName)
+{
+	FString Result = InName;
+	Result = Result.Replace(TEXT("?"), TEXT("")).Replace(TEXT("="),TEXT("")).Replace(TEXT("&"), TEXT(""));
+	return Result.Left(20);
 }

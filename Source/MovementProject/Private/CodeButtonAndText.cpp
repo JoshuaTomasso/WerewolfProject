@@ -18,6 +18,7 @@ void UCodeButtonAndText::NativeDestruct()
 	if (TargetPlayerState)
 	{
 		TargetPlayerState->OnVotesOnPlayerChanged.RemoveDynamic(this, &UCodeButtonAndText::UpdateVoteCountDisplay);
+		TargetPlayerState->OnDisplayNameChanged.RemoveDynamic(this, &UCodeButtonAndText::UpdateVoteCountDisplay);
 	}
 	
 	if (ACodeGameState* GameState = GetWorld() ? GetWorld()->GetGameState<ACodeGameState>() : nullptr)
@@ -35,6 +36,8 @@ void UCodeButtonAndText::SetupEntry(ACodePlayerState* PlayerReference)
 	{
 		TargetPlayerState->OnVotesOnPlayerChanged.RemoveDynamic(this, &UCodeButtonAndText::UpdateVoteCountDisplay);
 		TargetPlayerState->OnVotesOnPlayerChanged.AddDynamic(this, &UCodeButtonAndText::UpdateVoteCountDisplay);
+		TargetPlayerState->OnDisplayNameChanged.RemoveDynamic(this, &UCodeButtonAndText::UpdateVoteCountDisplay);
+		TargetPlayerState->OnDisplayNameChanged.AddDynamic(this, &UCodeButtonAndText::UpdateVoteCountDisplay);
 	}
 	else
 	{

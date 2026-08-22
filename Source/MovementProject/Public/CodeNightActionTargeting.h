@@ -74,6 +74,9 @@ public:
 
 	UFUNCTION()
 	void HideVoteNotification();
+	
+	UFUNCTION()
+	void RefreshPlayerNameText();
 
 
 private:

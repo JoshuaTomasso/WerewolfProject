@@ -48,18 +48,35 @@ void UCodeDayVoteTargeting::PopulateTargetList()
 	}
 }
 
+void UCodeDayVoteTargeting::RefreshPlayerNameText()
+{
+	if (const APlayerController* OwningController = GetOwningPlayer())
+	{
+		if (const ACodePlayerState* PlayerState = Cast<ACodePlayerState>(OwningController->PlayerState))
+		{
+			if (PlayerNameText)
+			{
+				PlayerNameText->SetText(FText::FromString(PlayerState->GetPlayerName()));
+			}
+		}
+	}
+}
+
 void UCodeDayVoteTargeting::TryInitializePlayerState()
 {
 	if (const APlayerController* OwningController = GetOwningPlayer())
 	{
 		if (OwningController->PlayerState)
 		{
-			if (const ACodePlayerState* PlayerState = Cast<ACodePlayerState>(OwningController->PlayerState))
+			if (ACodePlayerState* PlayerState = Cast<ACodePlayerState>(OwningController->PlayerState))
 			{
 				if (PlayerNameText)
 				{
 					PlayerNameText->SetText(FText::FromString(PlayerState->GetPlayerName()));
 				}
+				
+				PlayerState->OnDisplayNameChanged.RemoveDynamic(this, &UCodeDayVoteTargeting::RefreshPlayerNameText);
+				PlayerState->OnDisplayNameChanged.AddDynamic(this, &UCodeDayVoteTargeting::RefreshPlayerNameText);
 			}
 		}
 		else if (InitializationRetryCount < 50)

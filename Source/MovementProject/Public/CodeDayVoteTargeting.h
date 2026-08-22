@@ -42,6 +42,9 @@ public:
 	UFUNCTION()
 	void PopulateTargetList();
 
+	UFUNCTION()
+	void RefreshPlayerNameText();
+	
 private:
 
 	FTimerHandle InitializationTimerHandle;

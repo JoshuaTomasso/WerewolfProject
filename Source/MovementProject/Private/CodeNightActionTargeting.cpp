@@ -38,6 +38,7 @@ void UCodeNightActionTargeting::NativeDestruct()
 		CastedPlayer->OnRoleAssigned.RemoveDynamic(this, &UCodeNightActionTargeting::OnRoleAssignedHandler);
 		CastedPlayer->OnErrorCountChanged.RemoveDynamic(this, &UCodeNightActionTargeting::ShowVoteNotification);
 		CastedPlayer->OnWerewolfPartnerChanged.RemoveDynamic(this, &UCodeNightActionTargeting::UpdatePartnerDisplay);
+		CastedPlayer->OnDisplayNameChanged.RemoveDynamic(this, &UCodeNightActionTargeting::RefreshPlayerNameText);
 	}
 
 	if (PartnersTarget)
@@ -181,6 +182,14 @@ void UCodeNightActionTargeting::HideVoteNotification()
 	VoteNotificationText->SetVisibility(ESlateVisibility::Collapsed);
 }
 
+void UCodeNightActionTargeting::RefreshPlayerNameText()
+{
+	if (CastedPlayer && PlayerNameText)
+	{
+		PlayerNameText->SetText(FText::FromString(CastedPlayer->GetPlayerName()));
+	}
+}
+
 void UCodeNightActionTargeting::TryInitializePlayerState()
 {
 	APlayerController* OwningController = GetOwningPlayer();
@@ -210,6 +219,8 @@ void UCodeNightActionTargeting::TryInitializePlayerState()
 
 			PlayerState->OnErrorCountChanged.RemoveDynamic(this, &UCodeNightActionTargeting::ShowVoteNotification);
 			PlayerState->OnErrorCountChanged.AddDynamic(this, &UCodeNightActionTargeting::ShowVoteNotification);
+			PlayerState->OnDisplayNameChanged.RemoveDynamic(this, &UCodeNightActionTargeting::RefreshPlayerNameText);
+			PlayerState->OnDisplayNameChanged.AddDynamic(this, &UCodeNightActionTargeting::RefreshPlayerNameText);
 		}
 	}
 	else if (InitializationRetryCount < 50)
@@ -255,5 +266,7 @@ void UCodeNightActionTargeting::InitializePlayerState()
 
 		PlayerState->OnErrorCountChanged.RemoveDynamic(this, &UCodeNightActionTargeting::ShowVoteNotification);
 		PlayerState->OnErrorCountChanged.AddDynamic(this, &UCodeNightActionTargeting::ShowVoteNotification);
+		PlayerState->OnDisplayNameChanged.RemoveDynamic(this, &UCodeNightActionTargeting::RefreshPlayerNameText);
+		PlayerState->OnDisplayNameChanged.AddDynamic(this, &UCodeNightActionTargeting::RefreshPlayerNameText);
 	}
 }

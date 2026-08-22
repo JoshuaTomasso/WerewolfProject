@@ -13,6 +13,8 @@
 #include "CodeNightResult.h"
 #include "CodeRevealeRole.h"
 #include "CodeBlackoutBackground.h"
+#include "CodeGameInstance.h"
+#include  "CodeSessionManager.h"
 
 void ACodePlayerController::BeginPlay()
 {
@@ -20,6 +22,15 @@ void ACodePlayerController::BeginPlay()
 
 	if (IsLocalController())
 	{
+		if (UCodeGameInstance* CodeGameInstance = Cast<UCodeGameInstance>(GetGameInstance()))
+		{
+			
+			if (CodeGameInstance->SessionManager)
+			{
+				Server_SetPlayerName(CodeGameInstance->SessionManager->GetLocalPlayerName());
+			}
+		}
+		
 		if (GamePhaseTimerWidgetClass)
 		{
 			GamePhaseTimerWidget = CreateWidget<UCodeGamePhaseTimer>(this, GamePhaseTimerWidgetClass);
@@ -273,5 +284,13 @@ void ACodePlayerController::ShowGameOverWidget(FString WinningFaction)
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ShowGameOverWidget: gameOverWidget is null"));
+	}
+}
+
+void ACodePlayerController::Server_SetPlayerName_Implementation(const FString& NewName)
+{
+	if (PlayerState && !NewName.IsEmpty())
+	{
+		PlayerState->SetPlayerName(NewName);
 	}
 }
