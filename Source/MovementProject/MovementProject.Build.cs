@@ -8,7 +8,7 @@ public class MovementProject : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "AudioMixer", "GameplayTags" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  "UMG", "Slate", "SlateCore" });
 

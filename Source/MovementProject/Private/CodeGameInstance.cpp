@@ -3,19 +3,22 @@
 
 #include "CodeGameInstance.h"
 #include "CodeSessionManager.h"
-#include "GameFramework/GameUserSettings.h"
+#include "EnhancedInputSubsystems.h"
+#include "UserSettings/EnhancedInputUserSettings.h"
 
 void UCodeGameInstance::Init()
 {
 	Super::Init();
-	
-	if (UGameUserSettings* UserSettings = GEngine->GetGameUserSettings()) 
-	{
-		UserSettings->SetOverallScalabilityLevel(0);
-		UserSettings->SetFullscreenMode(EWindowMode::Windowed);
-		UserSettings->SetFrameRateLimit(30);
-		UserSettings->ApplySettings(true);
-	}
-
 	SessionManager = NewObject<UCodeSessionManager>(this);
+	
+	if (APlayerController* PC = GetPrimaryPlayerController(false))
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
+		{
+			if (DefaultMappingContext)
+			{
+				Subsystem->GetUserSettings()->RegisterInputMappingContexts({ DefaultMappingContext });
+			}
+		}
+	}
 }

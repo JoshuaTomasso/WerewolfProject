@@ -8,6 +8,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "CodeLobbyEntry.h"
 #include "CodeMainMenu.h"
+#include "Components/Spacer.h"
 
 void UCodePlayGame::NativeConstruct()
 {
@@ -45,6 +46,16 @@ void UCodePlayGame::NativeConstruct()
 		
 		CodeGameInstance->SessionManager->FindLobbies();
 	}
+	
+
+	GetWorld()->GetTimerManager().SetTimer(
+		RefreshTimerHandle,
+		this,
+		&UCodePlayGame::AutoCheckAndRefresh,
+		RefreshTimerInterval,
+		true
+		);
+	
 }
 
 void UCodePlayGame::NativeDestruct()
@@ -110,7 +121,11 @@ void UCodePlayGame::RefreshLobbyList()
 				{
 					Entry->SetupEntry(CodeGameInstance->SessionManager->FoundLobbyNames[i], i, CodeGameInstance->SessionManager);
 					SessionsScrollBox->AddChild(Entry);
-					UE_LOG(LogTemp, Warning, TEXT("Refresh Lobby List: List Refreshed"));
+					
+					USpacer* Spacer = NewObject<USpacer>(this);
+					Spacer->SetSize(FVector2D(EntrySpacing, EntrySpacing));
+					SessionsScrollBox->AddChild(Spacer);
+					
 				}
 			}
 		}
@@ -120,13 +135,24 @@ void UCodePlayGame::RefreshLobbyList()
 
 void UCodePlayGame::OnRefreshButtonPressed()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Refresh Lobby List : Button pressed"));
-	
 	UCodeGameInstance* CodeGameInstance = GetCodeGameInstance();
 	if (CodeGameInstance && CodeGameInstance->SessionManager)
 	{
 		CodeGameInstance->SessionManager->FindLobbies();
 		RefreshLobbyList();
+	}
+}
+
+void UCodePlayGame::AutoCheckAndRefresh()
+{
+	if (!SessionsScrollBox->HasAnyChildren())
+	{
+		UCodeGameInstance* CodeGameInstance = GetCodeGameInstance();
+		if (CodeGameInstance && CodeGameInstance->SessionManager)
+		{
+			CodeGameInstance->SessionManager->FindLobbies();
+			RefreshLobbyList();
+		}
 	}
 }
 

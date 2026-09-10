@@ -2,6 +2,9 @@
 
 
 #include "CodeMainMenuPlayerCharacter.h"
+#include "EnhancedInputSubsystems.h"
+#include "UserSettings/EnhancedInputUserSettings.h"
+#include "Components/InputComponent.h"
 
 // Sets default values
 ACodeMainMenuPlayerCharacter::ACodeMainMenuPlayerCharacter()
@@ -15,6 +18,17 @@ ACodeMainMenuPlayerCharacter::ACodeMainMenuPlayerCharacter()
 void ACodeMainMenuPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	if (const APlayerController* PlayerController = Cast<APlayerController>(Controller))
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		{
+			if (DefaultMappingContext)
+			{
+				Subsystem->GetUserSettings()->RegisterInputMappingContexts({ DefaultMappingContext });
+			}
+		}
+	}
 	
 }
 

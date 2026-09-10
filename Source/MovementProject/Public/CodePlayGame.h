@@ -61,6 +61,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Widget")
 	FOnPlayGameClosed OnPlayGameClosed;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+	float EntrySpacing = 10.0f;
+
 protected:
 	
 	virtual void NativeConstruct() override;
@@ -81,9 +84,16 @@ public:
 	void OnRefreshButtonPressed();
 	
 	UFUNCTION()
+	void AutoCheckAndRefresh();
+	
+	UFUNCTION()
 	void OnPlayerNameCommitted(const FText& NewText, ETextCommit::Type CommitMethod);
 	
 private:
+	
+	FTimerHandle RefreshTimerHandle;
+	float RefreshTimerInterval = 5.0f;
+	
 	
 	class UCodeGameInstance* GetCodeGameInstance() const;
 	

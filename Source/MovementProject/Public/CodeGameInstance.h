@@ -22,4 +22,7 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Session")
 	UCodeSessionManager* SessionManager;
+	
+	UPROPERTY(EditAnywhere, Category = "Input")
+	class UInputMappingContext* DefaultMappingContext;
 };

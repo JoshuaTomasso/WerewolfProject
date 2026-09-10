@@ -16,6 +16,7 @@ void ACodePlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+    
     if (const APlayerController* PlayerController = Cast<APlayerController>(Controller))
     {
         if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
@@ -23,7 +24,8 @@ void ACodePlayerCharacter::BeginPlay()
             Subsystem->AddMappingContext(DefaultMappingContext, 0);
         }
     }
-
+    
+    
     if (MayorRevealText)
     {
         MayorRevealText->SetVisibility(false);
