@@ -36,6 +36,7 @@ void UCodeSessionManager::CreateLobby(const FString LobbyName, const int32 MaxPl
 	SessionSettings.bAllowJoinViaPresence = true;
 	SessionSettings.Set(FName("LOBBY_NAME"), LobbyName, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 
+	SessionInterface->OnCreateSessionCompleteDelegates.RemoveAll(this);
 	SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UCodeSessionManager::HandleCreateSessionComplete);
 	SessionInterface->CreateSession(0, FName("WerewolfLobby"), SessionSettings);
 }
@@ -81,6 +82,7 @@ void UCodeSessionManager::FindLobbies()
 	SessionSearch->bIsLanQuery = true;
 	SessionSearch->MaxSearchResults = 20;
 
+	SessionInterface->OnFindSessionsCompleteDelegates.RemoveAll(this);
 	SessionInterface->OnFindSessionsCompleteDelegates.AddUObject(this, &UCodeSessionManager::HandleFindSessionsComplete);
 	SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
 }
@@ -124,6 +126,7 @@ void UCodeSessionManager::JoinLobby(const int32 SearchResultIndex)
 		return;
 	}
 
+	SessionInterface->OnJoinSessionCompleteDelegates.RemoveAll(this);
 	SessionInterface->OnJoinSessionCompleteDelegates.AddUObject(this, &UCodeSessionManager::HandleJoinSessionComplete);
 	SessionInterface->JoinSession(0, FName("WerewolfLobby"), SessionSearch->SearchResults[SearchResultIndex]);
 }

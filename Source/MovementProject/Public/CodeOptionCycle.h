@@ -69,4 +69,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Other")
 	int32 GetSelectedIndex() const;
 	
+	UFUNCTION(BlueprintCallable, Category = "Setup")
+	void InitializeOptionCycle();
+	
 };

@@ -1,103 +1,101 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/Button.h"
-#include "CodeOptionKey.h"
 #include "Components/ScrollBox.h"
+#include "CodeOptionKey.h"
 #include "CodeQuestionScreen.h"
 #include "CodeControlSettings.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class MOVEMENTPROJECT_API UCodeControlSettings : public UUserWidget
 {
 	GENERATED_BODY()
-	
+
 public:
-	UPROPERTY(meta = (BindWidget))
-	UButton* ResetButton;
 
 	UPROPERTY(meta = (BindWidget))
-	UButton* ApplyButton;
+	TObjectPtr<UButton> ResetButton;
 
 	UPROPERTY(meta = (BindWidget))
-	UButton* BackButton;
-	
+	TObjectPtr<UButton> ApplyButton;
+
 	UPROPERTY(meta = (BindWidget))
-	UScrollBox* ControlsScrollBox;
-	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	TMap<FName, FKey> KeyMap;
-	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	TMap<FName, FKey> SavedKeyMap;
-	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	TMap<FName, UCodeOptionKey*> OptionKeys;
-	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	TSubclassOf<UCodeOptionKey> CodeOptionKeyClass;
-	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	UCodeOptionKey* CodeOptionKey;
-	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	TSubclassOf<UCodeQuestionScreen> CodeQuestionScreenClass;
-	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	UCodeQuestionScreen* CodeQuestionScreen;
-	
+	TObjectPtr<UButton> BackButton;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UScrollBox> ControlsScrollBox;
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input")
-	class UInputMappingContext* DefaultMappingContext;
-	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	bool bHasConflicts;
-	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	bool bHasUnsavedChanges;
-	
+	TMap<FName, FKey> KeyMap;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input")
+	TMap<FName, FKey> SavedKeyMap;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input")
+	TMap<FName, TObjectPtr<UCodeOptionKey>> OptionKeys;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UI")
+	TSubclassOf<UCodeOptionKey> CodeOptionKeyClass;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UI")
+	TObjectPtr<UCodeOptionKey> CodeOptionKey;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UI")
+	TSubclassOf<UCodeQuestionScreen> CodeQuestionScreenClass;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "UI")
+	TObjectPtr<UCodeQuestionScreen> CodeQuestionScreen;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input")
+	TObjectPtr<class UInputMappingContext> DefaultMappingContext;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input")
+	bool bHasConflicts = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Input")
+	bool bHasUnsavedChanges = false;
+
 protected:
+
 	virtual void NativeConstruct() override;
-	
+
 public:
+
 	UFUNCTION()
 	void ResetButtonClicked();
-	
+
 	UFUNCTION()
 	void ApplyButtonClicked();
-	
+
 	UFUNCTION()
 	void BackButtonClicked();
-	
+
 	UFUNCTION()
 	void SetupControlsSettings();
-	
+
 	UFUNCTION()
 	TMap<FName, FKey> GetKeyMapping();
-	
+
 	UFUNCTION()
 	void UpdateKeyMapping(FName InputMappingKey, FKey InputKey);
-	
+
 	UFUNCTION()
 	void CheckKeyConflicts(FName InputMappingKey, FKey InputKey);
-	
-	UFUNCTION()
-	void ApplyChangedSettings();
-	
-	UFUNCTION()
-	void ApplyChangedAndClose();
-	
-	UFUNCTION()
-	void BackOutWithoutSaving();
-	
+
 	UFUNCTION()
 	void ResetKeyMapping();
-	
+
+	UFUNCTION()
+	void ApplyChangedSettings();
+
+	UFUNCTION()
+	void ApplyChangedAndClose();
+
+	UFUNCTION()
+	void BackOutWithoutSaving();
+
 	UFUNCTION()
 	void CloseQuestionScreen();
 };

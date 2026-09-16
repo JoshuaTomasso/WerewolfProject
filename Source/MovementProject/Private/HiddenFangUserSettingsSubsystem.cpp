@@ -5,6 +5,11 @@
 #include "Kismet/GameplayStatics.h"
 #include "CodeUserSettings.h"
 
+UHiddenFangUserSettingsSubsystem::UHiddenFangUserSettingsSubsystem()
+{
+	SGUserSettingsClass = UCodeUserSettings::StaticClass();
+}
+
 void UHiddenFangUserSettingsSubsystem::SaveAudioSettings(const FSAudioSettings& AudioSettings)
 {
 	LoadSettings()->AudioSettings = AudioSettings;

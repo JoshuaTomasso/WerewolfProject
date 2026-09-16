@@ -17,6 +17,8 @@ class MOVEMENTPROJECT_API UHiddenFangUserSettingsSubsystem : public UGameInstanc
 	GENERATED_BODY()
 	
 public:
+	UHiddenFangUserSettingsSubsystem();
+	
 	UPROPERTY()
 	UCodeUserSettings* SGUserSettings;
 	

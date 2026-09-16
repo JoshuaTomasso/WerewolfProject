@@ -9,21 +9,8 @@ void UCodeOptionCycle::NativePreConstruct()
 {
 	Super::NativePreConstruct();
 	
-	OptionText->PopulateTextLabels(OptionArray);
-	OptionText->SetSelectedItem(DefaultSelectedIndex);
-	OptionText->SetupPips(OptionArray.Num());
-	
-	if (DefaultSelectedIndex >= 0)
-	{
-		OptionText->SetActivePipIndex(DefaultSelectedIndex);
-	}
-	else
-	{
-		OptionText->MarkAsCustom();
-	}
-	
 	T_OptionName->SetText(OptionNameText);
-	
+	InitializeOptionCycle();
 }
 
 void UCodeOptionCycle::NativeConstruct()
@@ -75,4 +62,22 @@ int32 UCodeOptionCycle::GetSelectedIndex() const
 	{
 		return OptionText->GetSelectedIndex();
 	}
+}
+
+void UCodeOptionCycle::InitializeOptionCycle()
+{
+	OptionText->PopulateTextLabels(OptionArray);
+	OptionText->SetSelectedItem(DefaultSelectedIndex);
+	OptionText->SetupPips(OptionArray.Num());
+
+	if (DefaultSelectedIndex >= 0)
+	{
+		OptionText->SetActivePipIndex(DefaultSelectedIndex);
+	}
+	else
+	{
+		OptionText->MarkAsCustom();
+	}
+
+	T_OptionName->SetText(OptionNameText);
 }
