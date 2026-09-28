@@ -26,19 +26,17 @@ void UCodeSessionManager::CreateLobby(const FString LobbyName, const int32 MaxPl
 
 	PendingMapName = MapName;
 	PendingMaxPlayers = FMath::Max(1, MaxPlayers);
+	PendingLobbyName = LobbyName;
 
-	FOnlineSessionSettings SessionSettings;
-	SessionSettings.bIsLANMatch = true;
-	SessionSettings.NumPublicConnections = PendingMaxPlayers;
-	SessionSettings.bShouldAdvertise = true;
-	SessionSettings.bUsesPresence = true;
-	SessionSettings.bAllowJoinInProgress = true;
-	SessionSettings.bAllowJoinViaPresence = true;
-	SessionSettings.Set(FName("LOBBY_NAME"), LobbyName, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
+	if (SessionInterface->GetNamedSession(FName("WerewolfLobby")) != nullptr)
+	{
+		SessionInterface->OnDestroySessionCompleteDelegates.RemoveAll(this);
+		SessionInterface->OnDestroySessionCompleteDelegates.AddUObject(this, &UCodeSessionManager::HandleDestroySessionThenCreate);
+		SessionInterface->DestroySession(FName("WerewolfLobby"));
+		return;
+	}
 
-	SessionInterface->OnCreateSessionCompleteDelegates.RemoveAll(this);
-	SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UCodeSessionManager::HandleCreateSessionComplete);
-	SessionInterface->CreateSession(0, FName("WerewolfLobby"), SessionSettings);
+	CreateLobbyInternal();
 }
 
 void UCodeSessionManager::HandleCreateSessionComplete(FName SessionName, const bool bWasSuccessful) const
@@ -144,6 +142,20 @@ void UCodeSessionManager::SetLocalPlayerName(const FString& NewName)
 	SavePlayerName();
 }
 
+void UCodeSessionManager::LeaveLobby()
+{
+	const IOnlineSessionPtr SessionInterface = GetSessionInterface();
+	if (!SessionInterface.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("LeaveLobby: SessionInterface invalid"));
+		return;
+	}
+
+	SessionInterface->OnDestroySessionCompleteDelegates.RemoveAll(this);
+	SessionInterface->OnDestroySessionCompleteDelegates.AddUObject(this, &UCodeSessionManager::HandleDestroySessionComplete);
+	SessionInterface->DestroySession(FName("WerewolfLobby"));
+}
+
 FString UCodeSessionManager::GetLocalPlayerName()
 {
 	if (LocalPlayerName.IsEmpty())
@@ -181,6 +193,47 @@ void UCodeSessionManager::HandleJoinSessionComplete(const FName SessionName, con
 	}
 
 	OnJoinSessionCompleteEvent.Broadcast(bSuccess);
+}
+
+void UCodeSessionManager::HandleDestroySessionComplete(FName SessionName, bool bWasSuccessful)
+{
+	if (bWasSuccessful)
+	{
+		if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
+		{
+			PC->ClientTravel(TEXT("/Game/Maps/MainMenuMap"), TRAVEL_Absolute);
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("HandleDestroySessionComplete: Failed to destroy session"));
+	}
+
+	OnLeaveSessionCompleteEvent.Broadcast(bWasSuccessful);
+}
+
+void UCodeSessionManager::HandleDestroySessionThenCreate(FName SessionName, bool bWasSuccessful)
+{
+	CreateLobbyInternal();
+}
+
+void UCodeSessionManager::CreateLobbyInternal()
+{
+	const IOnlineSessionPtr SessionInterface = GetSessionInterface();
+	if (!SessionInterface.IsValid()) return;
+
+	FOnlineSessionSettings SessionSettings;
+	SessionSettings.bIsLANMatch = true;
+	SessionSettings.NumPublicConnections = PendingMaxPlayers;
+	SessionSettings.bShouldAdvertise = true;
+	SessionSettings.bUsesPresence = true;
+	SessionSettings.bAllowJoinInProgress = true;
+	SessionSettings.bAllowJoinViaPresence = true;
+	SessionSettings.Set(FName("LOBBY_NAME"), PendingLobbyName, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
+
+	SessionInterface->OnCreateSessionCompleteDelegates.RemoveAll(this);
+	SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UCodeSessionManager::HandleCreateSessionComplete);
+	SessionInterface->CreateSession(0, FName("WerewolfLobby"), SessionSettings);
 }
 
 void UCodeSessionManager::LoadPlayerName()

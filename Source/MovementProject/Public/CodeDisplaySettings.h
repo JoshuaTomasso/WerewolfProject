@@ -54,6 +54,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Display Settings")
 	TArray<FDisplayInfo> AllDisplays;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Display Settings")
+	TArray<int32> FPSLimits;
+	
 protected:
 	virtual void NativeConstruct() override;
 	
@@ -81,10 +84,16 @@ public:
 	void SetupFPSLimitWidget();
 	
 	UFUNCTION()
+	void SetWindowedMode();
+	
+	UFUNCTION()
 	void SetActiveDisplay();
 	
 	UFUNCTION()
 	void SetResolution();
+	
+	UFUNCTION()
+	void SetFPSLimit();
 	
 	UFUNCTION()
 	void ApplyDisplaySettings();

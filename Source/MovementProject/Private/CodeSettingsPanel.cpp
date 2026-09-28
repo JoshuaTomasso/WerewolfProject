@@ -3,6 +3,7 @@
 
 #include "CodeSettingsPanel.h"
 #include "CodeMainMenu.h"
+#include "CodePauseMenu.h"
 
 
 void UCodeSettingsPanel::NativeConstruct()
@@ -31,6 +32,10 @@ void UCodeSettingsPanel::AudioButtonClicked()
 	{
 		ParentMenu->ShowPanel(ECodeMainMenuPanelOrder::SoundSettings);
 	}
+	else if (UCodePauseMenu* PauseParentMenu = GetTypedOuter<UCodePauseMenu>())
+	{
+		PauseParentMenu->ShowPanel(ECodePauseMenuPanelOrder::SoundPanel);
+	}
 }
 
 void UCodeSettingsPanel::VideoButtonClicked()
@@ -38,6 +43,10 @@ void UCodeSettingsPanel::VideoButtonClicked()
 	if (UCodeMainMenu* ParentMenu = GetTypedOuter<UCodeMainMenu>())
 	{
 		ParentMenu->ShowPanel(ECodeMainMenuPanelOrder::GraphicsSettings);
+	}
+	else if (UCodePauseMenu* PauseParentMenu = GetTypedOuter<UCodePauseMenu>())
+	{
+		PauseParentMenu->ShowPanel(ECodePauseMenuPanelOrder::GraphicsPanel);
 	}
 }
 
@@ -47,6 +56,11 @@ void UCodeSettingsPanel::DisplayButtonClicked()
 	{
 		ParentMenu->ShowPanel(ECodeMainMenuPanelOrder::DisplaySettings);
 	}
+	else if (UCodePauseMenu* PauseParentMenu = GetTypedOuter<UCodePauseMenu>())
+	{
+		PauseParentMenu->ShowPanel(ECodePauseMenuPanelOrder::DisplayPanel);
+	}
+	
 }
 
 void UCodeSettingsPanel::ControlsButtonClicked()
@@ -55,6 +69,10 @@ void UCodeSettingsPanel::ControlsButtonClicked()
 	{
 		ParentMenu->ShowPanel(ECodeMainMenuPanelOrder::ControlSettings);
 	}
+	else if (UCodePauseMenu* PauseParentMenu = GetTypedOuter<UCodePauseMenu>())
+	{
+		PauseParentMenu->ShowPanel(ECodePauseMenuPanelOrder::ControlPanel);
+	}
 }
 
 void UCodeSettingsPanel::BackButtonClicked()
@@ -62,5 +80,9 @@ void UCodeSettingsPanel::BackButtonClicked()
 	if (UCodeMainMenu* ParentMenu = GetTypedOuter<UCodeMainMenu>())
 	{
 		ParentMenu->ShowPanel(ECodeMainMenuPanelOrder::MainButtons);
+	}
+	else if (UCodePauseMenu* PauseParentMenu = GetTypedOuter<UCodePauseMenu>())
+	{
+		PauseParentMenu->ShowPanel(ECodePauseMenuPanelOrder::PauseMenu);
 	}
 }

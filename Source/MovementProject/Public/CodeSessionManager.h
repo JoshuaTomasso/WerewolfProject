@@ -1,5 +1,6 @@
 #pragma once
 #include "CoreMinimal.h"
+#include "Subsystems/GameInstanceSubsystem.h"
 #include "OnlineSubsystem.h"
 #include "Interfaces/OnlineSessionInterface.h"
 #include "OnlineSessionSettings.h"
@@ -7,10 +8,11 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLobbyCreateComplete);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLobbySearchComplete);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLobbyLeaveComplete, bool, bSuccess);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLobbyJoinComplete, bool, bSuccess);
 
-UCLASS(Blueprintable)
-class MOVEMENTPROJECT_API UCodeSessionManager : public UObject
+UCLASS()
+class MOVEMENTPROJECT_API UCodeSessionManager : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
 
@@ -28,6 +30,9 @@ public:
 	void SetLocalPlayerName(const FString& NewName);
 	
 	UFUNCTION(BlueprintCallable, Category = "Session")
+	void LeaveLobby();
+	
+	UFUNCTION(BlueprintCallable, Category = "Session")
 	FString GetLocalPlayerName();
 	
 	UPROPERTY(BlueprintAssignable, Category = "Session")
@@ -37,6 +42,9 @@ public:
 	FOnLobbySearchComplete OnSessionSearchCompleteEvent;
 
 	UPROPERTY(BlueprintAssignable, Category = "Session")
+	FOnLobbyLeaveComplete OnLeaveSessionCompleteEvent;
+	
+	UPROPERTY(BlueprintAssignable, Category = "Session")
 	FOnLobbyJoinComplete OnJoinSessionCompleteEvent;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Session")
@@ -44,6 +52,7 @@ public:
 	
 private:
 	TSharedPtr<FOnlineSessionSearch> SessionSearch;
+	FString PendingLobbyName;
 	FName PendingMapName;
 	int32 PendingMaxPlayers = 8;
 	bool bSearchInProgress = false;
@@ -53,7 +62,10 @@ private:
 	void HandleCreateSessionComplete(FName SessionName, bool bWasSuccessful) const;
 	void HandleFindSessionsComplete(bool bWasSuccessful);
 	void HandleJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result) const;
+	void HandleDestroySessionComplete(FName SessionName, bool bWasSuccessful);
+	void HandleDestroySessionThenCreate(FName SessionName, bool bWasSuccessful);
 	
+	void CreateLobbyInternal();
 	void LoadPlayerName();
 	void SavePlayerName() const;
 	static FString GenerateDefaultName();

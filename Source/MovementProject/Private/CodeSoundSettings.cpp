@@ -7,6 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "HiddenFangUserSettingsSubsystem.h"
 #include "SAudioSettings.h"
+#include "CodePauseMenu.h"
 
 void UCodeSoundSettings::NativeConstruct()
 {
@@ -52,6 +53,10 @@ void UCodeSoundSettings::BackButtonClicked()
 	if (UCodeMainMenu* ParentMenu = GetTypedOuter<UCodeMainMenu>())
 	{
 		ParentMenu->ShowPanel(ECodeMainMenuPanelOrder::SettingsPanel);
+	}
+	else if (UCodePauseMenu* PauseParentMenu = GetTypedOuter<UCodePauseMenu>())
+	{
+		PauseParentMenu->ShowPanel(ECodePauseMenuPanelOrder::SettingsPanel);
 	}
 	else
 	{

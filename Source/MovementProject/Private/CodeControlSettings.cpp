@@ -4,6 +4,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "UserSettings/EnhancedInputUserSettings.h"
 #include "InputMappingContext.h"
+#include "CodePauseMenu.h"
 
 
 void UCodeControlSettings::NativeConstruct()
@@ -133,6 +134,10 @@ void UCodeControlSettings::BackButtonClicked()
 	if (UCodeMainMenu* ParentMenu = GetTypedOuter<UCodeMainMenu>())
 	{
 		ParentMenu->ShowPanel(ECodeMainMenuPanelOrder::SettingsPanel);
+	}
+	else if (UCodePauseMenu* PauseParentMenu = GetTypedOuter<UCodePauseMenu>())
+	{
+		PauseParentMenu->ShowPanel(ECodePauseMenuPanelOrder::SettingsPanel);
 	}
 	else
 	{

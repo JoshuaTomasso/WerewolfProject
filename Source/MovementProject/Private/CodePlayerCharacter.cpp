@@ -78,6 +78,11 @@ void ACodePlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
             EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACodePlayerCharacter::PlayerJump);
 			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACodePlayerCharacter::PlayerStopJumping);
 		}
+        
+        if (PauseAction)
+        {
+            EnhancedInputComponent->BindAction(PauseAction, ETriggerEvent::Triggered, this, &ACodePlayerCharacter::PlayerPause);
+        }
     }
 }
 
@@ -181,5 +186,27 @@ void ACodePlayerCharacter::PlayerStopJumping(const FInputActionValue& Value)
 {
 	ACharacter::StopJumping();
     bIsJumping = false;
+}
+
+void ACodePlayerCharacter::PlayerPause(const FInputActionValue& Value)
+{
+    if (PauseMenuWidget && PauseMenuWidget->IsInViewport())
+    {
+        PauseMenuWidget->ClosePauseMenu();
+        return;
+    }
+    
+    
+    if (PauseMenuWidgetClass)
+    {
+        if (APlayerController* PC = Cast<APlayerController>(GetController()))
+        {
+            PauseMenuWidget = CreateWidget<UCodePauseMenu>(PC, PauseMenuWidgetClass);
+            if (PauseMenuWidget)
+            {
+                PauseMenuWidget->AddToViewport();
+            }
+        }
+    }
 }
 

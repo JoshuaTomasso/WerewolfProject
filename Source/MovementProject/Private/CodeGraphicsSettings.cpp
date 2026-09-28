@@ -5,6 +5,7 @@
 #include "CodeMainMenu.h"
 #include "CodeOptionCycle.h"
 #include "GameFramework/GameUserSettings.h"
+#include "CodePauseMenu.h"
 
 void UCodeGraphicsSettings::NativeConstruct()
 {
@@ -39,6 +40,10 @@ void UCodeGraphicsSettings::BackButtonClicked()
 	if (UCodeMainMenu* ParentMenu = GetTypedOuter<UCodeMainMenu>())
 	{
 		ParentMenu->ShowPanel(ECodeMainMenuPanelOrder::SettingsPanel);
+	}
+	else if (UCodePauseMenu* PauseParentMenu = GetTypedOuter<UCodePauseMenu>())
+	{
+		PauseParentMenu->ShowPanel(ECodePauseMenuPanelOrder::SettingsPanel);
 	}
 	else
 	{

@@ -7,6 +7,7 @@
 #include "InputActionValue.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/TextRenderComponent.h"
+#include "CodePauseMenu.h"
 #include "CodePlayerCharacter.generated.h"
 
 UCLASS()
@@ -49,6 +50,9 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
     class UInputAction* JumpAction;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputAction* PauseAction;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
     bool bIsJumping;
@@ -56,6 +60,12 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
     UCharacterMovementComponent* MovementComponent;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
+	TSubclassOf<UCodePauseMenu> PauseMenuWidgetClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
+	UCodePauseMenu* PauseMenuWidget;
+	
     void Move(const FInputActionValue& Value);
 
     void Look(const FInputActionValue& Value);
@@ -76,4 +86,6 @@ public:
 	void PlayerJump(const FInputActionValue& Value);
 
 	void PlayerStopJumping(const FInputActionValue& Value);
+	
+	void PlayerPause(const FInputActionValue& Value);
 };

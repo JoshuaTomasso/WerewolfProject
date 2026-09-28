@@ -6,6 +6,7 @@
 #include "CodeOptionCycle.h"
 #include "GameFramework/GameUserSettings.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "CodePauseMenu.h"
 
 void UCodeDisplaySettings::NativeConstruct()
 {
@@ -53,6 +54,10 @@ void UCodeDisplaySettings::BackButtonClicked()
 	if (UCodeMainMenu* ParentMenu = GetTypedOuter<UCodeMainMenu>())
 	{
 		ParentMenu->ShowPanel(ECodeMainMenuPanelOrder::SettingsPanel);
+	}
+	else if (UCodePauseMenu* PauseParentMenu = GetTypedOuter<UCodePauseMenu>())
+	{
+		PauseParentMenu->ShowPanel(ECodePauseMenuPanelOrder::SettingsPanel);
 	}
 	else
 	{
@@ -105,7 +110,6 @@ void UCodeDisplaySettings::SetupDisplayScreenWidget()
 
 	DisplayScreenWidget->OptionArray = DisplayNames;
 	DisplayScreenWidget->OptionNameText =  FText::FromString("Display Screen");
-	DisplayScreenWidget->DefaultSelectedIndex = 1;
 	DisplayScreenWidget->InitializeOptionCycle();
 
 	DisplayScrollBox->AddChild(DisplayScreenWidget);
@@ -233,6 +237,19 @@ void UCodeDisplaySettings::SetupFPSLimitWidget()
 		UE_LOG(LogTemp, Error, TEXT("SetupFPSLimitWidget: OptionCycleWidgetClass or DisplayScrollBox is null!"));
 		return;
 	}
+	TArray<FText> FPSLimitArray;
+	
+	for (const int32 FPSLimit : FPSLimits)
+	{
+		if (FPSLimit == 0)
+		{
+			FPSLimitArray.Add(FText::FromString("Unlimited"));
+		}
+		else
+		{
+			FPSLimitArray.Add(FText::FromString(FString::FromInt(FPSLimit)));
+		}
+	}
 
 	APlayerController* OwningPlayer = GetOwningPlayer();
 	if (!OwningPlayer)
@@ -247,13 +264,34 @@ void UCodeDisplaySettings::SetupFPSLimitWidget()
 		UE_LOG(LogTemp, Error, TEXT("SetupFPSLimitWidget: Failed to create FPSLimitWidget!"));
 		return;
 	}
-
-	FPSLimitWidget->OptionArray = {FText::FromString("60"), FText::FromString("144"), FText::FromString("240"), FText::FromString("Unlimited")};
+	
+	FPSLimitWidget->OptionArray = FPSLimitArray;
 	FPSLimitWidget->OptionNameText = FText::FromString("FPS Limit");
 	FPSLimitWidget->InitializeOptionCycle();
 
 	DisplayScrollBox->AddChild(FPSLimitWidget);
 	FPSLimitWidget->SetPadding(FMargin(0.0f, 0.0f, 0.0f, 20.0f));
+}
+
+void UCodeDisplaySettings::SetWindowedMode()
+{
+	if (UGameUserSettings* GameUserSettings = GEngine->GetGameUserSettings())
+	{
+		if (!WindowedModeWidget)
+		{
+			UE_LOG(LogTemp, Error, TEXT("ApplyDisplaySettings: WindowedModeWidget is null!"));
+			return;
+		}
+
+		const int32 SelectedIndex = WindowedModeWidget->GetSelectedIndex();
+		if (!AllWindowedModes.IsValidIndex(SelectedIndex))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ApplyDisplaySettings: SelectedIndex %d is not valid in AllWindowedModes!"), SelectedIndex);
+			return;
+		}
+
+		GameUserSettings->SetFullscreenMode(AllWindowedModes[SelectedIndex]);
+	}
 }
 
 void UCodeDisplaySettings::SetActiveDisplay()
@@ -301,6 +339,14 @@ void UCodeDisplaySettings::SetResolution()
 	
 }
 
+void UCodeDisplaySettings::SetFPSLimit()
+{
+	if (UGameUserSettings* GameUserSettings = GEngine->GetGameUserSettings())
+	{
+		GameUserSettings->SetFrameRateLimit(FPSLimits[FPSLimitWidget->GetSelectedIndex()]);
+	}
+}
+
 void UCodeDisplaySettings::ApplyDisplaySettings()
 {
 	if (!GEngine)
@@ -311,23 +357,12 @@ void UCodeDisplaySettings::ApplyDisplaySettings()
 
 	if (UGameUserSettings* GameUserSettings = GEngine->GetGameUserSettings())
 	{
+		SetFPSLimit();
 		SetActiveDisplay();
-
-		if (!WindowedModeWidget)
-		{
-			UE_LOG(LogTemp, Error, TEXT("ApplyDisplaySettings: WindowedModeWidget is null!"));
-			return;
-		}
-
-		const int32 SelectedIndex = WindowedModeWidget->GetSelectedIndex();
-		if (!AllWindowedModes.IsValidIndex(SelectedIndex))
-		{
-			UE_LOG(LogTemp, Warning, TEXT("ApplyDisplaySettings: SelectedIndex %d is not valid in AllWindowedModes!"), SelectedIndex);
-			return;
-		}
-
-		GameUserSettings->SetFullscreenMode(AllWindowedModes[SelectedIndex]);
-		GameUserSettings->ApplyResolutionSettings(false);
+		SetResolution();
+		SetWindowedMode();
+		GameUserSettings->ApplySettings(false);
+		GameUserSettings->SaveSettings();
 	}
 	else
 	{
