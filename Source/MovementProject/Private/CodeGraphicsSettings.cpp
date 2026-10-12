@@ -136,6 +136,23 @@ void UCodeGraphicsSettings::SetupGraphicsSettings()
 	{
 		UE_LOG(LogTemp, Error, TEXT("SetupGraphicsSettings: No Overall option row found — OverallOption is null!"));
 	}
+
+	if (OverallOption)
+	{
+		int32 Common = INDEX_NONE;
+		bool bAllSame = true;
+		for (const auto& Pair : AllOptions)
+		{
+			if (Pair.Key == ECodeProjectGraphicOptions::Overall) continue;
+			const int32 Val = Pair.Value->GetSelectedIndex();
+			if (Common == INDEX_NONE) Common = Val;
+			else if (Val != Common) { bAllSame = false; break; }
+		}
+
+		if (bAllSame && Common >= 0) OverallOption->UpdateSelected(Common);
+		else OverallOption->UpdateTextToCustom();
+	}
+
 }
 
 void UCodeGraphicsSettings::ChangeOverallOptions(const int32 SelectedIndex)

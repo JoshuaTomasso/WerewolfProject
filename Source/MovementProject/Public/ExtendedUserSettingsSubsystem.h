@@ -23,4 +23,7 @@ public:
 	UFUNCTION()
 	void SetActiveDisplayByID(const FString& DisplayID);
 	
+	UFUNCTION()
+	int32 GetActiveDisplayIndex() const;
+
 };

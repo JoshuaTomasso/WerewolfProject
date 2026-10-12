@@ -97,6 +97,7 @@ void UCodeDisplaySettings::SetupDisplayScreenWidget()
 			{
 				DisplayNames.Add(FText::FromString(DisplayInfo.Name));
 			}
+			DisplayScreenWidget->DefaultSelectedIndex = SettingsSubsystem->GetActiveDisplayIndex();
 		}
 		else
 		{

@@ -52,3 +52,34 @@ void UExtendedUserSettingsSubsystem::SetActiveDisplayByID(const FString& Display
 		
 	}
 }
+
+int32 UExtendedUserSettingsSubsystem::GetActiveDisplayIndex() const
+{
+	if (!GEngine || !GEngine->GameViewport)
+	{
+		return 0;
+	}
+
+	const TSharedPtr<SWindow> GameWindow = GEngine->GameViewport->GetWindow();
+	if (!GameWindow.IsValid())
+	{
+		return 0;
+	}
+
+	const FVector2D WindowCenter = GameWindow->GetPositionInScreen() + GameWindow->GetSizeInScreen() * 0.5f;
+
+	FDisplayMetrics DisplayMetrics;
+	FDisplayMetrics::RebuildDisplayMetrics(DisplayMetrics);
+
+	for (int32 i = 0; i < DisplayMetrics.MonitorInfo.Num(); ++i)
+	{
+		const FPlatformRect& Rect = DisplayMetrics.MonitorInfo[i].DisplayRect;
+		if (WindowCenter.X >= Rect.Left && WindowCenter.X < Rect.Right &&
+			WindowCenter.Y >= Rect.Top && WindowCenter.Y < Rect.Bottom)
+		{
+			return i;
+		}
+	}
+
+	return 0;
+}
